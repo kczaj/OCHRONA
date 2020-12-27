@@ -1,0 +1,29 @@
+# Lista zadań
+- [ ] Logowanie i rejestracja
+- [ ] Notatki 
+  - [ ] Szyfrowanie
+  - [ ] Odszyfrowanie
+  - [ ] Udostępnianie notatek nieszyfrowanych
+- [ ] Moduł uwierzytelniania 
+  - [ ] Walidację danych wejściowych
+    - [ ] Opóźnienia i limity prób
+    - [ ] Ograniczone informowanie o błędach
+  - [ ] Bezpieczne przechowywanie hasła
+    - [ ] Wykorzystanie kryptograficznych funcji mieszających, wykorzystanie soli, wielokrotne hashowanie
+    - [ ] Kontrola siły hasła, żeby uświadomić użytkownikowi problem
+    - [ ] Monitorowanie pracy systemu (komputery jakie chciały się z kontem połączyć)
+  - [ ] Zarządzanie uprawnieniami do zasobów
+## Wymagania (ISOD)
+  - [ ] Projekt powinien być skonteryzowany za pomocą Docker
+  - [ ] SQL
+  - [ ] Szyfrowane połączenie
+  - [ ] Wszystkie dane wejściowe od użytkownika podlegają walidacji z negatywnym nastawieniem
+  - [ ] Weryfikacja liczby nieudanych prób logowania
+  - [ ] Sprawdzanie jakości hasła (np. jego entropii)
+  - [ ] Dodać opóźnienie podczas logowania
+  - [ ] Zabezpieczenie przeciwko Cross-Site Request Forgery
+  - [ ] Możliwość odzyskania dostępu w przypadku utraty hasła
+  - [ ] Informowanie użytkownika o nowych podłączeniach do jego konta
+  - [ ] Zostawienie honeypots
+  - [ ] Mechanizm Content-Security-Policy
+  - [ ] Wyłączenie nagłówka Server
