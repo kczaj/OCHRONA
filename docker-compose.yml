@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  nginx:
+    build: ./src/nginx/Dockerfile
+#    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+  uwsgi:
+    build: ./src/uwsgi/Dockerfile
+    volumes:
+      - ./src/uwsgi/app:/var/www/app
