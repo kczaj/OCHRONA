@@ -14,8 +14,8 @@
     - [ ] Monitorowanie pracy systemu (komputery jakie chciały się z kontem połączyć)
   - [ ] Zarządzanie uprawnieniami do zasobów
 ## Wymagania (ISOD)
-  - [ ] Projekt powinien być skonteryzowany za pomocą Docker
-  - [ ] SQL
+  - [X] Projekt powinien być skonteryzowany za pomocą Docker
+  - [X] SQL
   - [X] Szyfrowane połączenie (HTTPS)
   - [ ] Wszystkie dane wejściowe od użytkownika podlegają walidacji z negatywnym nastawieniem
   - [ ] Weryfikacja liczby nieudanych prób logowania
