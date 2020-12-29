@@ -1,4 +1,4 @@
 FROM nginx
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY /server.crt /etc/nginx/ca.crt
-COPY /server.key /etc/nginx/ca.key
+COPY /src/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY /src/nginx/server.crt /etc/nginx/ca.crt
+COPY /src/nginx/server.key /etc/nginx/ca.key
