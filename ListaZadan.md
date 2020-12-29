@@ -16,7 +16,7 @@
 ## Wymagania (ISOD)
   - [ ] Projekt powinien być skonteryzowany za pomocą Docker
   - [ ] SQL
-  - [ ] Szyfrowane połączenie
+  - [X] Szyfrowane połączenie (HTTPS)
   - [ ] Wszystkie dane wejściowe od użytkownika podlegają walidacji z negatywnym nastawieniem
   - [ ] Weryfikacja liczby nieudanych prób logowania
   - [ ] Sprawdzanie jakości hasła (np. jego entropii)
