@@ -8,5 +8,4 @@ COPY ./src/uwsgi/wsgi.py wsgi.py
 COPY ./src/uwsgi/requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 COPY ./src/uwsgi/app app
-EXPOSE 5000
 CMD ["uwsgi", "--ini", "uwsgi.ini"]
