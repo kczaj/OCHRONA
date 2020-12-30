@@ -10,5 +10,6 @@ def init():
     sql.execute("USE ochrona;")
 
     sql.execute("DROP TABLE IF EXISTS users")
-    sql.execute("CREATE TABLE users (username VARCHAR(32), password VARCHAR(150));")
+    sql.execute(
+        "CREATE TABLE users (email VARCHAR(30), name VARCHAR(20), surname VARCHAR(30), username VARCHAR(32), password VARCHAR(150));")
     db.commit()
