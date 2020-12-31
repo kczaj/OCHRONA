@@ -83,7 +83,9 @@ document.addEventListener("DOMContentLoaded", (e) => {
         } else if(entropy > 3) {
             progresBar.style.width = "40%"
             progresBar.className = "progress-bar bg-warning"
-        } else{
+        } else if (password === ""){
+            progresBar.style.width = "0%"
+        }else {
             progresBar.style.width = "10%"
             progresBar.className = "progress-bar bg-danger"
         }

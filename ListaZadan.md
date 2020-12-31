@@ -19,7 +19,7 @@
   - [X] Szyfrowane połączenie (HTTPS)
   - [ ] Wszystkie dane wejściowe od użytkownika podlegają walidacji z negatywnym nastawieniem
   - [ ] Weryfikacja liczby nieudanych prób logowania
-  - [ ] Sprawdzanie jakości hasła (np. jego entropii)
+  - [X] Sprawdzanie jakości hasła (np. jego entropii)
   - [ ] Dodać opóźnienie podczas logowania
   - [ ] Zabezpieczenie przeciwko Cross-Site Request Forgery
   - [ ] Możliwość odzyskania dostępu w przypadku utraty hasła

@@ -1,3 +1,5 @@
 flask
 uwsgi
 mysql-connector-python
+bcrypt
+pybase64
