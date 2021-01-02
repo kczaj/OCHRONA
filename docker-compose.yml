@@ -16,6 +16,7 @@ services:
     volumes:
       - ./src/uwsgi/app:/var/www/app
     environment:
+      - 'SECRET_KEY=$SECRET_KEY'
       - 'MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD'
       - 'PEPPER:$PEPPER'
   db:

@@ -1,5 +1,4 @@
-from flask import Flask, render_template, make_response, request
-import mysql.connector as mariadb
+from flask import Flask, render_template, make_response, request, session, redirect
 import hashlib
 import bcrypt
 import os
@@ -10,20 +9,30 @@ from app.init import init
 from app.dao import DAO
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY")
+app.config["SESSION_COOKIE_SECURE"] = True
 
 dao = None
 
 
 @app.before_first_request
 def init_db():
-    init()
+    # init()
     global dao
     dao = DAO()
 
 
-@app.route('/')
+@app.route('/', methods=["GET"])
 def index():
     return make_response(render_template("index.html"), 200)
+
+
+@app.route('/list/', methods=["GET"])
+def after_log():
+    if "username" not in session.keys():
+        return redirect("/")
+    else:
+        return make_response(render_template("after_log.html"), 200)
 
 
 def check_if_sqli(value):
@@ -61,17 +70,17 @@ def register():
     emails = dao.sql.fetchall()
     if emails:
         return make_response({
-                    "status": "400",
-                    "message": "Email already used",
-                    "email": str(emails)
-                }, 400)
+            "status": "400",
+            "message": "Email already used",
+            "email": str(emails)
+        }, 400)
     dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\';")
     usernames = dao.sql.fetchall()
     if usernames:
         return make_response({
-                    "status": "400",
-                    "message": "Username already used"
-                }, 400)
+            "status": "400",
+            "message": "Username already used"
+        }, 400)
 
     password_to_db = prepare_password(password)
     password_to_db = bcrypt.hashpw(password_to_db.encode("utf-8"), bcrypt.gensalt(14)).decode("utf-8")
@@ -79,7 +88,14 @@ def register():
     dao.sql.execute(
         f"INSERT INTO users (email, name, surname, username, password) VALUES (\'{email}\', \'{name}\', \'{surname}\', \'{username}\', \'{password_to_db}\');")
     dao.db.commit()
+    session["username"] = username
     return make_response({
         "status": "200",
         "message": "OK",
     }, 200)
+
+
+@app.route("/logout/", methods=["POST"])
+def logout():
+    session.pop("username", None)
+    return redirect("/")
