@@ -1,5 +1,5 @@
 # Lista zadań
-- [ ] Logowanie i rejestracja
+- [X] Logowanie i rejestracja
 - [ ] Notatki 
   - [ ] Szyfrowanie
   - [ ] Odszyfrowanie
@@ -9,8 +9,8 @@
     - [ ] Opóźnienia i limity prób
     - [ ] Ograniczone informowanie o błędach
   - [ ] Bezpieczne przechowywanie hasła
-    - [ ] Wykorzystanie kryptograficznych funcji mieszających, wykorzystanie soli, wielokrotne hashowanie
-    - [ ] Kontrola siły hasła, żeby uświadomić użytkownikowi problem
+    - [X] Wykorzystanie kryptograficznych funcji mieszających, wykorzystanie soli, wielokrotne hashowanie
+    - [X] Kontrola siły hasła, żeby uświadomić użytkownikowi problem
     - [ ] Monitorowanie pracy systemu (komputery jakie chciały się z kontem połączyć)
   - [ ] Zarządzanie uprawnieniami do zasobów
 ## Wymagania (ISOD)
