@@ -72,7 +72,6 @@ def register():
         return make_response({
             "status": "400",
             "message": "Email already used",
-            "email": str(emails)
         }, 400)
     dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\';")
     usernames = dao.sql.fetchall()
@@ -93,6 +92,45 @@ def register():
         "status": "200",
         "message": "OK",
     }, 200)
+
+
+@app.route("/login/", methods=["POST"])
+def login():
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    if username is None or password is None:
+        return make_response({
+            "status": "403",
+            "message": "Forbidden"
+        }, 403)
+
+    if not check_if_sqli(username) or not check_if_sqli(password):
+        return make_response({
+            "status": "403",
+            "message": "Forbidden"
+        }, 403)
+
+    dao.sql.execute(f"SELECT password FROM users WHERE username=\'{username}\'; ")
+    password_db = dao.sql.fetchone()
+    if not password_db:
+        return make_response({
+            "status": "404",
+            "message": "User not found"
+        }, 404)
+    else:
+        password_form = prepare_password(password)
+        if bcrypt.checkpw(password_form.encode("utf-8"), password_db[0].encode("utf-8")):
+            session["username"] = username
+            return make_response({
+                "status": "200",
+                "message": "Logged in"
+            }, 200)
+        else:
+            return make_response({
+                "status": "401",
+                "message": "Unauthorized"
+            }, 401)
 
 
 @app.route("/logout/", methods=["POST"])

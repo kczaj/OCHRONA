@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", (e) => {
     let baseURL = "https://localhost/"
-    let loginForm = document.getElementById("loginBtn")
-    let registerForm = document.getElementById("registerBtn")
+    let loginBtn = document.getElementById("loginBtn")
+    let registerBtn = document.getElementById("registerBtn")
     let alertRegister = document.getElementById("alertRegister")
     let alertLogin = document.getElementById("alertLogin")
     let progresBar = document.getElementById("progressbar")
@@ -20,7 +20,8 @@ document.addEventListener("DOMContentLoaded", (e) => {
         return true;
     }
 
-    loginForm.addEventListener("click", (e) => {
+    loginBtn.addEventListener("click", async(e) => {
+        e.preventDefault();
         console.log("login")
         let usernameInput = document.getElementById("inputUsernameS")
         let passwordInput = document.getElementById("inputPasswordS")
@@ -29,12 +30,16 @@ document.addEventListener("DOMContentLoaded", (e) => {
             let password = usernameInput.value
 
             if (validateFieldsLogin(username, password)) {
-                console.log("wyqgh")
+                let loginForm = document.getElementById("login-form")
+                let formData = new FormData(loginForm)
+                let result = await loginUser(formData)
+                if (result === 200){
+                    window.location.href = "list/"
+                } else{
+                    alertLogin.style.display = "block"
+                }
             } else {
                 alertLogin.style.display = "block"
-                setTimeout(() => {
-                    console.log("World!");
-                }, 5000);
             }
         }
     })
@@ -96,7 +101,8 @@ document.addEventListener("DOMContentLoaded", (e) => {
         }
     })
 
-    registerForm.addEventListener("click", async (e) => {
+    registerBtn.addEventListener("click", async (e) => {
+        e.preventDefault()
         console.log("regiser")
         let usernameInput = document.getElementById("inputUsernameR")
         let emailInput = document.getElementById("inputEmailR")
@@ -156,4 +162,17 @@ document.addEventListener("DOMContentLoaded", (e) => {
         let res = await fetch(requestURL, requestParam)
         return res.status
     }
+
+    async function loginUser(formData) {
+        let requestURL = baseURL + "login/"
+        let requestParam = {
+            method: "POST",
+            body: formData,
+            redirect: "follow",
+        };
+
+        let res = await fetch(requestURL, requestParam)
+        return res.status
+    }
+
 })
