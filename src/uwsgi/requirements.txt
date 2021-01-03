@@ -3,3 +3,4 @@ uwsgi
 mysql-connector-python
 bcrypt
 pybase64
+flask-cors

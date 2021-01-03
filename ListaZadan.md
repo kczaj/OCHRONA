@@ -7,7 +7,7 @@
 - [ ] Moduł uwierzytelniania 
   - [ ] Walidację danych wejściowych
     - [ ] Opóźnienia i limity prób
-    - [ ] Ograniczone informowanie o błędach
+    - [X] Ograniczone informowanie o błędach
   - [ ] Bezpieczne przechowywanie hasła
     - [X] Wykorzystanie kryptograficznych funcji mieszających, wykorzystanie soli, wielokrotne hashowanie
     - [X] Kontrola siły hasła, żeby uświadomić użytkownikowi problem
@@ -17,7 +17,7 @@
   - [X] Projekt powinien być skonteryzowany za pomocą Docker
   - [X] SQL
   - [X] Szyfrowane połączenie (HTTPS)
-  - [ ] Wszystkie dane wejściowe od użytkownika podlegają walidacji z negatywnym nastawieniem
+  - [X] Wszystkie dane wejściowe od użytkownika podlegają walidacji z negatywnym nastawieniem
   - [ ] Weryfikacja liczby nieudanych prób logowania
   - [X] Sprawdzanie jakości hasła (np. jego entropii)
   - [ ] Dodać opóźnienie podczas logowania

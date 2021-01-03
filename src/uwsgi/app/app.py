@@ -1,4 +1,5 @@
 from flask import Flask, render_template, make_response, request, session, redirect
+from flask_cors import CORS, cross_origin
 import hashlib
 import bcrypt
 import os
@@ -9,6 +10,7 @@ from app.init import init
 from app.dao import DAO
 
 app = Flask(__name__)
+cors = CORS(app)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config["SESSION_COOKIE_SECURE"] = True
 
@@ -23,11 +25,13 @@ def init_db():
 
 
 @app.route('/', methods=["GET"])
+@cross_origin(origins=["https://localhost"])
 def index():
     return make_response(render_template("index.html"), 200)
 
 
 @app.route('/list/', methods=["GET"])
+@cross_origin(origins=["https://localhost"])
 def after_log():
     if "username" not in session.keys():
         return redirect("/")
@@ -48,6 +52,7 @@ def prepare_password(password):
 
 
 @app.route('/register/', methods=["POST"])
+@cross_origin(origins=["https://localhost"])
 def register():
     username = request.form.get("username")
     email = request.form.get("email")
@@ -95,6 +100,7 @@ def register():
 
 
 @app.route("/login/", methods=["POST"])
+@cross_origin(origins=["https://localhost"])
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
@@ -134,6 +140,7 @@ def login():
 
 
 @app.route("/logout/", methods=["POST"])
+@cross_origin(origins=["https://localhost"])
 def logout():
     session.pop("username", None)
     return redirect("/")
