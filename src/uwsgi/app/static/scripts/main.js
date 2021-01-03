@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", (e) => {
 
     loginBtn.addEventListener("click", async(e) => {
         e.preventDefault();
-        console.log("login")
         let usernameInput = document.getElementById("inputUsernameS")
         let passwordInput = document.getElementById("inputPasswordS")
         if (usernameInput.value !== "" && passwordInput.value !== "") {
@@ -103,7 +102,6 @@ document.addEventListener("DOMContentLoaded", (e) => {
 
     registerBtn.addEventListener("click", async (e) => {
         e.preventDefault()
-        console.log("regiser")
         let usernameInput = document.getElementById("inputUsernameR")
         let emailInput = document.getElementById("inputEmailR")
         let nameInput = document.getElementById("inputNameR")

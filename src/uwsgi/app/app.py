@@ -4,6 +4,10 @@ import hashlib
 import bcrypt
 import os
 import base64
+from Crypto.Cipher import AES
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
 
 from app.init import init
 
@@ -39,11 +43,20 @@ def after_log():
         return make_response(render_template("after_log.html"), 200)
 
 
+@app.route('/note/', methods=["GET"])
+@cross_origin(origins=["https://localhost"])
+def new_file():
+    if "username" not in session.keys():
+        return redirect("/")
+    else:
+        return make_response(render_template("new_note.html"), 200)
+
+
 def check_if_sqli(value):
     if ";" in value or "#" in value or "--" in value or "/*" in value or "'" in value:
-        return False
-    else:
         return True
+    else:
+        return False
 
 
 def prepare_password(password):
@@ -64,8 +77,8 @@ def register():
             "status": "403",
             "message": "Forbidden"
         }, 403)
-    if not check_if_sqli(username) or not check_if_sqli(email) or not check_if_sqli(name) or not check_if_sqli(
-            surname) or not check_if_sqli(password):
+    if check_if_sqli(username) or check_if_sqli(email) or check_if_sqli(name) or check_if_sqli(
+            surname) or check_if_sqli(password):
         return make_response({
             "status": "403",
             "message": "Forbidden"
@@ -111,7 +124,7 @@ def login():
             "message": "Forbidden"
         }, 403)
 
-    if not check_if_sqli(username) or not check_if_sqli(password):
+    if check_if_sqli(username) or check_if_sqli(password):
         return make_response({
             "status": "403",
             "message": "Forbidden"
@@ -144,3 +157,62 @@ def login():
 def logout():
     session.pop("username", None)
     return redirect("/")
+
+
+@app.route("/savenote/", methods=["POST"])
+@cross_origin(origins=["https://localhost"])
+def save_note():
+    title = request.form.get("title")
+    body = request.form.get("body")
+    password = request.form.get("password")
+    username = session["username"] if "username" in session.keys() else None
+
+    if username is None:
+        return make_response({
+            "status": "401",
+            "message": "Unauthorized"
+        }, 403)
+
+    if title is None or body is None:
+        return make_response({
+            "status": "403",
+            "message": "Forbidden"
+        }, 403)
+
+    if check_if_sqli(title) or check_if_sqli(body) or check_if_sqli(username):
+        return make_response({
+            "status": "403",
+            "message": "Forbidden"
+        }, 403)
+
+    dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\'")
+    usernames = dao.sql.fetchone()
+    if not usernames:
+        return make_response({
+            "status": "404",
+            "message": "Not found"
+        }, 403)
+
+    if password is None or password is "":
+        dao.sql.execute(
+            f"INSERT INTO notes (title, body) VALUES (\'{title}\', \'{body}\');")
+        dao.db.commit()
+        return make_response({
+            "status": "201",
+            "message": "Created",
+        }, 201)
+    else:
+        salt = get_random_bytes(16)
+        key = PBKDF2(password, salt)
+        iv = get_random_bytes(16)
+        aes = AES.new(key, AES.MODE_CBC, iv=iv)
+        encrypted_note = aes.encrypt(pad(body.encode("utf-8"), AES.block_size))
+        note_to_db = base64.b64encode(iv + salt + encrypted_note).decode("utf-8")
+
+        dao.sql.execute(
+            f"INSERT INTO notes (title, body, owner) VALUES (\'{title}\', \'{note_to_db}\', \'{username} \');")
+        dao.db.commit()
+        return make_response({
+            "status": "201",
+            "message": "Created",
+        }, 201)

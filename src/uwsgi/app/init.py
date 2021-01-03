@@ -11,6 +11,6 @@ def init():
 
     sql.execute("DROP TABLE IF EXISTS users")
     sql.execute(
-        "CREATE TABLE users (email VARCHAR(30), name VARCHAR(20), surname VARCHAR(30), username VARCHAR(32), password VARCHAR(150));")
-    sql.execute("CREATE TABLE notes (title VARCHAR (30), body VARCHAR(1000), owner VARCHAR(32));")
+        "CREATE TABLE users (email VARCHAR(30) NOT NULL , name VARCHAR(20) NOT NULL, surname VARCHAR(30) NOT NULL, username VARCHAR(32) NOT NULL, password VARCHAR(150) NOT NULL);")
+    sql.execute("CREATE TABLE notes (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, title VARCHAR (30) NOT NULL, body VARCHAR(1000) NOT NULL, owner VARCHAR(32));")
     db.commit()
