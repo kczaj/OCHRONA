@@ -244,15 +244,77 @@ def save_note():
         }, 201)
 
 
+@app.route("/decrypt/", methods=["POST"])
+@cross_origin(origins=["https://localhost"])
+def decrypt_note():
+    id = request.form.get("id")
+    password = request.form.get("password")
+    username = session["username"] if "username" in session.keys() else None
+
+    if username is None:
+        return make_response({
+            "status": "401",
+            "message": "Unauthorized"
+        }, 403)
+
+    if password is None or id is None or password is "" or id is "":
+        return make_response({
+            "status": "403",
+            "message": "Forbidden"
+        }, 403)
+
+    if check_if_sqli(password) or check_if_sqli(id) or check_if_sqli(username):
+        return make_response({
+            "status": "403",
+            "message": "Forbidden"
+        }, 403)
+
+    dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\'")
+    usernames = dao.sql.fetchone()
+    if not usernames:
+        return make_response({
+            "status": "404",
+            "message": "Not found"
+        }, 404)
+
+    dao.sql.execute(f"SELECT body FROM notes WHERE id = \'{id}\' AND owner = \'{username}\';")
+    note = dao.sql.fetchone()
+
+    if not note:
+        return make_response({
+            "status": "404",
+            "message": "Not found"
+        }, 404)
+    try:
+        note_db = base64.b64decode(note[0])
+        byte_note = bytes(note_db)
+        iv = byte_note[0:16]
+        salt = byte_note[16:32]
+        encrypted_note = byte_note[32:]
+
+        key = PBKDF2(password, salt)
+        aes = AES.new(key, AES.MODE_CBC, iv=iv)
+        og_data = unpad(aes.decrypt(encrypted_note), AES.block_size).decode("utf-8")
+        return make_response({
+            "status": "200",
+            "message": og_data,
+        }, 200)
+    except Exception:
+        return make_response({
+            "status": "400",
+            "message": "Bad request",
+        }, 400)
+
+
 @app.route("/notes/", methods=["GET"])
 @cross_origin(origins=["https://localhost"])
 def get_notes():
-    if "username" not in session.keys():
+    username = session["username"] if "username" in session.keys() else None
+    if username is None:
         return make_response({
             "status": "401",
             "message": "Unauthorized",
         }, 401)
-    username = session["username"]
     dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
     usernames = dao.sql.fetchall()
     if not usernames:
@@ -280,12 +342,12 @@ def get_notes():
 @app.route("/public/", methods=["GET"])
 @cross_origin(origins=["https://localhost"])
 def get_public_notes():
-    if "username" not in session.keys():
+    username = session["username"] if "username" in session.keys() else None
+    if username is None:
         return make_response({
             "status": "401",
             "message": "Unauthorized",
         }, 401)
-    username = session["username"]
     dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
     usernames = dao.sql.fetchall()
     if not usernames:

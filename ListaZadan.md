@@ -1,9 +1,10 @@
 # Lista zadań
 - [X] Logowanie i rejestracja
-- [ ] Notatki 
+- [X] Notatki 
   - [X] Szyfrowanie
-  - [ ] Odszyfrowanie
+  - [X] Odszyfrowanie
   - [X] Udostępnianie notatek nieszyfrowanych
+- [ ] Pliki
 - [ ] Moduł uwierzytelniania 
   - [ ] Walidację danych wejściowych
     - [ ] Opóźnienia i limity prób

@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", async (e) => {
     let baseURL = "https://localhost/"
     let alert = document.getElementById("alert")
+    let decryptBtn = document.getElementById("decryptBtn")
     alert.style.display = "none"
     let index = -1
 
@@ -61,6 +62,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
                 btn.addEventListener("click", (e) => {
                     e.preventDefault()
                     index = note["id"]
+                    body.innerText = ""
                     title.setAttribute("value", note["title"])
                     let text = document.createTextNode(note["body"])
                     body.appendChild(text)
@@ -71,6 +73,47 @@ document.addEventListener("DOMContentLoaded", async (e) => {
             console.log(e)
         }
     }
+
+    function check_field(password) {
+        if (!/^[a-zA-Z0-9!@#$%&*]+$/.test(password)) {
+            throw "Wrong password format"
+        }
+    }
+
+    decryptBtn.addEventListener("click", async (e) => {
+        e.preventDefault()
+        let bodyNote = document.getElementById("body")
+        let passwordInput = document.getElementById("password")
+        try {
+            if (index === -1) {
+                throw "You need to choose note"
+            }
+            let password = passwordInput.value
+            check_field(password)
+            let formData = new FormData()
+            formData.append("password", password)
+            formData.append("id", index)
+            let res = await decryptNote(formData)
+            bodyNote.innerText = ''
+            let text = document.createTextNode(res["message"])
+            bodyNote.appendChild(text)
+            passwordInput.value = ''
+            alert.style.display = "none"
+        } catch (e) {
+            let getSpan = document.getElementById("alertR")
+            if (getSpan !== null) {
+                alert.removeChild(getSpan)
+            }
+            let span = document.createElement("span")
+            span.setAttribute("id", "alertR")
+            let text = document.createTextNode(e)
+            span.appendChild(text)
+            alert.appendChild(span)
+            passwordInput.value = ''
+            alert.style.display = "block"
+        }
+
+    })
 
     async function getNotes() {
         let requestURL = baseURL + "notes/"
@@ -91,6 +134,22 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         let requestURL = baseURL + "public/"
         let requestParam = {
             method: "GET",
+            redirect: "follow",
+        };
+
+        let res = await fetch(requestURL, requestParam)
+        if (res.status === 200) {
+            return await res.json()
+        } else {
+            throw "Something went wrong"
+        }
+    }
+
+    async function decryptNote(formData) {
+        let requestURL = baseURL + "decrypt/"
+        let requestParam = {
+            method: "POST",
+            body: formData,
             redirect: "follow",
         };
 
