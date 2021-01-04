@@ -1,9 +1,9 @@
 # Lista zadań
 - [X] Logowanie i rejestracja
 - [ ] Notatki 
-  - [ ] Szyfrowanie
+  - [X] Szyfrowanie
   - [ ] Odszyfrowanie
-  - [ ] Udostępnianie notatek nieszyfrowanych
+  - [X] Udostępnianie notatek nieszyfrowanych
 - [ ] Moduł uwierzytelniania 
   - [ ] Walidację danych wejściowych
     - [ ] Opóźnienia i limity prób
@@ -18,7 +18,7 @@
   - [X] SQL
   - [X] Szyfrowane połączenie (HTTPS)
   - [X] Wszystkie dane wejściowe od użytkownika podlegają walidacji z negatywnym nastawieniem
-  - [ ] Weryfikacja liczby nieudanych prób logowania
+  - [X] Weryfikacja liczby nieudanych prób logowania
   - [X] Sprawdzanie jakości hasła (np. jego entropii)
   - [ ] Dodać opóźnienie podczas logowania
   - [ ] Zabezpieczenie przeciwko Cross-Site Request Forgery

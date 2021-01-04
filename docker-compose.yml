@@ -25,3 +25,5 @@ services:
       driver: none
     environment:
       - 'MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD'
+  redis:
+    image: redis:alpine

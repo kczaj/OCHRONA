@@ -5,3 +5,4 @@ bcrypt
 pybase64
 flask-cors
 pycryptodome
+redis

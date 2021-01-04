@@ -8,6 +8,7 @@ from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
+import redis
 
 from app.init import init
 
@@ -16,6 +17,7 @@ from app.dao import DAO
 app = Flask(__name__)
 cors = CORS(app)
 app.secret_key = os.environ.get("SECRET_KEY")
+db = redis.Redis(host="redis", port=6379)
 app.config["SESSION_COOKIE_SECURE"] = True
 
 dao = None
@@ -104,6 +106,10 @@ def register():
 
     dao.sql.execute(
         f"INSERT INTO users (email, name, surname, username, password) VALUES (\'{email}\', \'{name}\', \'{surname}\', \'{username}\', \'{password_to_db}\');")
+    dao.sql.execute(f"SELECT id FROM users WHERE username=\'{username}\'; ")
+    data_db = dao.sql.fetchone()
+    name = "user_" + str(data_db[0])
+    db.hset(name, "count", 0)
     dao.db.commit()
     session["username"] = username
     return make_response({
@@ -130,22 +136,40 @@ def login():
             "message": "Forbidden"
         }, 403)
 
-    dao.sql.execute(f"SELECT password FROM users WHERE username=\'{username}\'; ")
-    password_db = dao.sql.fetchone()
-    if not password_db:
+    dao.sql.execute(f"SELECT id, password FROM users WHERE username=\'{username}\'; ")
+    data_db = dao.sql.fetchone()
+    if not data_db:
         return make_response({
             "status": "404",
             "message": "User not found"
         }, 404)
     else:
+        id = str(data_db[0])
+        name = "user_" + id
+        lock = "lock_" + id
+
+        if db.exists(lock) == 1:
+            return make_response({
+                "status": "403",
+                "message": "Forbidden"
+            }, 403)
+
         password_form = prepare_password(password)
-        if bcrypt.checkpw(password_form.encode("utf-8"), password_db[0].encode("utf-8")):
+        if bcrypt.checkpw(password_form.encode("utf-8"), data_db[1].encode("utf-8")):
             session["username"] = username
+            db.hset(name, "count", 0)
             return make_response({
                 "status": "200",
                 "message": "Logged in"
             }, 200)
         else:
+            count = int(db.hget(name, "count"))
+            if count + 1 < 15:
+                db.hset(name, "count", count + 1)
+            else:
+                db.hset(name, "count", 0)
+                db.sadd(lock, "0")
+                db.expire(lock, 120)
             return make_response({
                 "status": "401",
                 "message": "Unauthorized"
