@@ -1,4 +1,6 @@
-from flask import Flask, render_template, make_response, request, session, redirect
+import json
+
+from flask import Flask, render_template, make_response, request, session, redirect, jsonify
 from flask_cors import CORS, cross_origin
 import hashlib
 import bcrypt
@@ -215,7 +217,7 @@ def save_note():
         return make_response({
             "status": "404",
             "message": "Not found"
-        }, 403)
+        }, 404)
 
     if password is None or password is "":
         dao.sql.execute(
@@ -240,3 +242,70 @@ def save_note():
             "status": "201",
             "message": "Created",
         }, 201)
+
+
+@app.route("/notes/", methods=["GET"])
+@cross_origin(origins=["https://localhost"])
+def get_notes():
+    if "username" not in session.keys():
+        return make_response({
+            "status": "401",
+            "message": "Unauthorized",
+        }, 401)
+    username = session["username"]
+    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    usernames = dao.sql.fetchall()
+    if not usernames:
+        return make_response({
+            "status": "404",
+            "message": "Not found"
+        }, 404)
+
+    dao.sql.execute(f"SELECT id, title FROM notes WHERE owner = \'{username}\';")
+    numrows = dao.sql.rowcount
+
+    notes = []
+    for x in range(0, numrows):
+        note_db = dao.sql.fetchone()
+        note = {
+            "id": str(note_db[0]),
+            "title": str(note_db[1])
+        }
+        note = json.dumps(note)
+        notes.append(note)
+
+    return make_response(jsonify({"notes": notes}), 200)
+
+
+@app.route("/public/", methods=["GET"])
+@cross_origin(origins=["https://localhost"])
+def get_public_notes():
+    if "username" not in session.keys():
+        return make_response({
+            "status": "401",
+            "message": "Unauthorized",
+        }, 401)
+    username = session["username"]
+    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    usernames = dao.sql.fetchall()
+    if not usernames:
+        return make_response({
+            "status": "404",
+            "message": "Not found"
+        }, 404)
+
+    dao.sql.execute(f"SELECT id, title, body FROM notes WHERE owner IS NULL;")
+    numrows = dao.sql.rowcount
+
+    notes = []
+    for x in range(0, numrows):
+        note_db = dao.sql.fetchone()
+        note = {
+            "id": str(note_db[0]),
+            "title": str(note_db[1]),
+            "body": str(note_db[2])
+        }
+        note = json.dumps(note)
+        notes.append(note)
+
+    return make_response(jsonify({"notes": notes}), 200)

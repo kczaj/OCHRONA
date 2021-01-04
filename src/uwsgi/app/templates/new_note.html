@@ -15,7 +15,6 @@
     <div class="row float-right">
         <a class="btn btn-primary mx-2" href="/list/">Home</a>
         <a class="btn btn-primary mx-2" href="/note/">New note</a>
-        <button type="submit" class="btn btn-primary mx-2">New file</button>
         <form method="post" action="https://localhost/logout/">
             <input type="submit" class="btn btn-primary mx-2" value="Log out">
         </form>
@@ -25,7 +24,8 @@
             <form id="note-form">
                 <h3>New note</h3>
                 <input type="text" class="form-control my-3" placeholder="Title" name="title" id="title">
-                <textarea class="form-control my-3" rows="5" minlength="1" maxlength="1000" name="body" id="body"></textarea>
+                <textarea class="form-control my-3" rows="5" minlength="1" maxlength="1000" name="body"
+                          id="body"></textarea>
                 <input type="password" class="form-control my-3" placeholder="Password" name="password" id="password">
                 <input type="submit" id="saveBtn" class="btn btn-primary my-2" value="Save"><br>
                 <label>If you don't enter password your note will be unencrypted and will be visible for
@@ -35,6 +35,17 @@
 
             </div>
         </div>
+        <div class="col align-items-start">
+            <form id="file-form">
+                <h3>New file</h3>
+                <input type="file" class="form-control-file" id="file">
+                <input type="submit" id="saveBtnFile" class="btn btn-primary my-2" value="Save">
+            </form>
+            <div class="alert alert-danger" role="alert" id="alertFile">
+
+            </div>
+        </div>
+
     </div>
 </div>
 
