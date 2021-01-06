@@ -27,4 +27,4 @@
   - [ ] Informowanie użytkownika o nowych podłączeniach do jego konta
   - [ ] Zostawienie honeypots
   - [ ] Mechanizm Content-Security-Policy
-  - [ ] Wyłączenie nagłówka Server
+  - [X] Wyłączenie nagłówka Server

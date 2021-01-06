@@ -37,7 +37,9 @@ def init_db():
 @app.route('/', methods=["GET"])
 @cross_origin(origins=["https://localhost"])
 def index():
-    return make_response(render_template("index.html"), 200)
+    resp = make_response(render_template("index.html"), 200)
+    resp.headers['Server'] = None
+    return resp
 
 
 @app.route('/list/', methods=["GET"])
@@ -46,7 +48,9 @@ def after_log():
     if "username" not in session.keys():
         return redirect("/")
     else:
-        return make_response(render_template("after_log.html"), 200)
+        resp = make_response(render_template("after_log.html"), 200)
+        resp.headers['Server'] = None
+        return resp
 
 
 @app.route('/note/', methods=["GET"])
@@ -55,7 +59,9 @@ def new_file():
     if "username" not in session.keys():
         return redirect("/")
     else:
-        return make_response(render_template("add.html"), 200)
+        resp = make_response(render_template("add.html"), 200)
+        resp.headers['Server'] = None
+        return resp
 
 
 def check_if_sqli(value):
@@ -79,31 +85,39 @@ def register():
     surname = request.form.get("surname")
     password = request.form.get("password")
     if username is None or email is None or name is None or surname is None or password is None:
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
     if check_if_sqli(username) or check_if_sqli(email) or check_if_sqli(name) or check_if_sqli(
             surname) or check_if_sqli(password):
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     dao.sql.execute(f"SELECT email FROM users WHERE email=\'{email}\'; ")
     emails = dao.sql.fetchall()
     if emails:
-        return make_response({
+        resp = make_response({
             "status": "400",
             "message": "Email already used",
         }, 400)
+        resp.headers['Server'] = None
+        return resp
     dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\';")
     usernames = dao.sql.fetchall()
     if usernames:
-        return make_response({
+        resp = make_response({
             "status": "400",
             "message": "Username already used"
         }, 400)
+        resp.headers['Server'] = None
+        return resp
 
     password_to_db = prepare_password(password)
     password_to_db = bcrypt.hashpw(password_to_db.encode("utf-8"), bcrypt.gensalt(14)).decode("utf-8")
@@ -116,10 +130,12 @@ def register():
     db.hset(name, "count", 0)
     dao.db.commit()
     session["username"] = username
-    return make_response({
+    resp = make_response({
         "status": "200",
         "message": "OK",
     }, 200)
+    resp.headers['Server'] = None
+    return resp
 
 
 @app.route("/login/", methods=["POST"])
@@ -129,43 +145,53 @@ def login():
     password = request.form.get("password")
 
     if username is None or password is None:
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     if check_if_sqli(username) or check_if_sqli(password):
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     dao.sql.execute(f"SELECT id, password FROM users WHERE username=\'{username}\'; ")
     data_db = dao.sql.fetchone()
     if not data_db:
-        return make_response({
+        resp = make_response({
             "status": "404",
             "message": "User not found"
         }, 404)
+        resp.headers['Server'] = None
+        return resp
     else:
         id = str(data_db[0])
         name = "user_" + id
         lock = "lock_" + id
 
         if db.exists(lock) == 1:
-            return make_response({
+            resp = make_response({
                 "status": "403",
                 "message": "Forbidden"
             }, 403)
+            resp.headers['Server'] = None
+            return resp
 
         password_form = prepare_password(password)
         if bcrypt.checkpw(password_form.encode("utf-8"), data_db[1].encode("utf-8")):
             session["username"] = username
             db.hset(name, "count", 0)
-            return make_response({
+            resp = make_response({
                 "status": "200",
                 "message": "Logged in"
             }, 200)
+            resp.headers['Server'] = None
+            return resp
         else:
             count = int(db.hget(name, "count"))
             if count + 1 < 15:
@@ -174,10 +200,12 @@ def login():
                 db.hset(name, "count", 0)
                 db.sadd(lock, "0")
                 db.expire(lock, 120)
-            return make_response({
+            resp = make_response({
                 "status": "401",
                 "message": "Unauthorized"
             }, 401)
+            resp.headers['Server'] = None
+            return resp
 
 
 @app.route("/logout/", methods=["POST"])
@@ -196,39 +224,49 @@ def save_note():
     username = session["username"] if "username" in session.keys() else None
 
     if username is None:
-        return make_response({
+        resp = make_response({
             "status": "401",
             "message": "Unauthorized"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     if title is None or body is None:
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     if check_if_sqli(title) or check_if_sqli(body) or check_if_sqli(username) or check_if_sqli(password):
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\'")
     usernames = dao.sql.fetchone()
     if not usernames:
-        return make_response({
+        resp = make_response({
             "status": "404",
             "message": "Not found"
         }, 404)
+        resp.headers['Server'] = None
+        return resp
 
     if password is None or password is "":
         dao.sql.execute(
             f"INSERT INTO notes (title, body) VALUES (\'{title}\', \'{body}\');")
         dao.db.commit()
-        return make_response({
+        resp = make_response({
             "status": "201",
             "message": "Created",
         }, 201)
+        resp.headers['Server'] = None
+        return resp
     else:
         hashed_password = prepare_password(password)
         hashed_password = bcrypt.hashpw(hashed_password.encode("utf-8"), bcrypt.gensalt(14)).decode("utf-8")
@@ -242,10 +280,12 @@ def save_note():
         dao.sql.execute(
             f"INSERT INTO notes (title, body, owner, password) VALUES (\'{title}\', \'{note_to_db}\', \'{username} \', \'{hashed_password} \');")
         dao.db.commit()
-        return make_response({
+        resp = make_response({
             "status": "201",
             "message": "Created",
         }, 201)
+        resp.headers['Server'] = None
+        return resp
 
 
 @app.route("/decrypt/", methods=["POST"])
@@ -256,54 +296,68 @@ def decrypt_note():
     username = session["username"] if "username" in session.keys() else None
 
     if username is None:
-        return make_response({
+        resp = make_response({
             "status": "401",
             "message": "Unauthorized"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     if password is None or id is None or password is "" or id is "":
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     if check_if_sqli(password) or check_if_sqli(id) or check_if_sqli(username):
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\'")
     usernames = dao.sql.fetchone()
     if not usernames:
-        return make_response({
+        resp = make_response({
             "status": "404",
             "message": "Not found"
         }, 404)
+        resp.headers['Server'] = None
+        return resp
 
     dao.sql.execute(f"SELECT password FROM notes WHERE owner=\'{username}\'")
     password_db = dao.sql.fetchone()
     password_form = prepare_password(password)
     if not password_db:
-        return make_response({
+        resp = make_response({
             "status": "400",
             "message": "Bad request"
         }, 400)
+        resp.headers['Server'] = None
+        return resp
 
     if not bcrypt.checkpw(password_form.encode("utf-8"), password_db[0].encode("utf-8")):
-        return make_response({
+        resp = make_response({
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        resp.headers['Server'] = None
+        return resp
 
     dao.sql.execute(f"SELECT body FROM notes WHERE id = \'{id}\' AND owner = \'{username}\';")
     note = dao.sql.fetchone()
 
     if not note:
-        return make_response({
+        resp = make_response({
             "status": "404",
             "message": "Not found"
         }, 404)
+        resp.headers['Server'] = None
+        return resp
     try:
         note_db = base64.b64decode(note[0])
         byte_note = bytes(note_db)
@@ -314,15 +368,19 @@ def decrypt_note():
         key = PBKDF2(password, salt)
         aes = AES.new(key, AES.MODE_CBC, iv=iv)
         og_data = unpad(aes.decrypt(encrypted_note), AES.block_size).decode("utf-8")
-        return make_response({
+        resp = make_response({
             "status": "200",
             "message": og_data,
         }, 200)
+        resp.headers['Server'] = None
+        return resp
     except Exception:
-        return make_response({
+        resp = make_response({
             "status": "400",
             "message": "Bad request",
         }, 400)
+        resp.headers['Server'] = None
+        return resp
 
 
 @app.route("/notes/", methods=["GET"])
@@ -330,17 +388,22 @@ def decrypt_note():
 def get_notes():
     username = session["username"] if "username" in session.keys() else None
     if username is None:
-        return make_response({
+        resp = make_response({
             "status": "401",
             "message": "Unauthorized",
         }, 401)
+        resp.headers['Server'] = None
+        return resp
+
     dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
     usernames = dao.sql.fetchall()
     if not usernames:
-        return make_response({
+        resp = make_response({
             "status": "404",
             "message": "Not found"
         }, 404)
+        resp.headers['Server'] = None
+        return resp
 
     dao.sql.execute(f"SELECT id, title FROM notes WHERE owner = \'{username}\';")
     numrows = dao.sql.rowcount
@@ -355,7 +418,9 @@ def get_notes():
         note = json.dumps(note)
         notes.append(note)
 
-    return make_response(jsonify({"notes": notes}), 200)
+    resp = make_response(jsonify({"notes": notes}), 200)
+    resp.headers['Server'] = None
+    return resp
 
 
 @app.route("/public/", methods=["GET"])
@@ -363,17 +428,21 @@ def get_notes():
 def get_public_notes():
     username = session["username"] if "username" in session.keys() else None
     if username is None:
-        return make_response({
+        resp = make_response({
             "status": "401",
             "message": "Unauthorized",
         }, 401)
+        resp.headers['Server'] = None
+        return resp
     dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
     usernames = dao.sql.fetchall()
     if not usernames:
-        return make_response({
+        resp = make_response({
             "status": "404",
             "message": "Not found"
         }, 404)
+        resp.headers['Server'] = None
+        return resp
 
     dao.sql.execute(f"SELECT id, title, body FROM notes WHERE owner IS NULL;")
     numrows = dao.sql.rowcount
@@ -389,43 +458,53 @@ def get_public_notes():
         note = json.dumps(note)
         notes.append(note)
 
-    return make_response(jsonify({"notes": notes}), 200)
+    resp = make_response(jsonify({"notes": notes}), 200)
+    resp.headers['Server'] = None
+    return resp
 
 
-@app.route("/file/", methods=["GET","POST"])
+@app.route("/file/", methods=["GET", "POST"])
 @cross_origin(origins=["https://localhost"])
 def save_file():
     if request.method == "POST":
         file = request.files["file"] if "file" in request.files else None
 
         if file is None:
-            return make_response({
+            resp = make_response({
                 "status": "400",
                 "message": "Bad request",
             }, 400)
+            resp.headers['Server'] = None
+            return resp
 
         username = session["username"] if "username" in session.keys() else None
         if username is None:
-            return make_response({
+            resp = make_response({
                 "status": "401",
                 "message": "Unauthorized",
             }, 401)
+            resp.headers['Server'] = None
+            return resp
 
         file_name = file.filename.split(".")[0]
 
         if check_if_sqli(file_name) or check_if_sqli(username):
-            return make_response({
+            resp = make_response({
                 "status": "403",
                 "message": "Forbidden"
             }, 403)
+            resp.headers['Server'] = None
+            return resp
 
         dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
         usernames = dao.sql.fetchall()
         if not usernames:
-            return make_response({
+            resp = make_response({
                 "status": "404",
                 "message": "Not found"
             }, 404)
+            resp.headers['Server'] = None
+            return resp
 
         if not os.path.exists("app/files/"):
             os.mkdir("app/files/")
@@ -441,31 +520,39 @@ def save_file():
         dao.sql.execute(
             f"INSERT INTO files (path, og_name, owner) VALUES (\'{path_to_file}\', \'{file.filename}\', \'{username} \');")
         dao.db.commit()
-        return make_response({
+        resp = make_response({
             "status": "201",
             "message": "Created",
         }, 201)
+        resp.headers['Server'] = None
+        return resp
     elif request.method == "GET":
         username = session["username"] if "username" in session.keys() else None
         if username is None:
-            return make_response({
+            resp = make_response({
                 "status": "401",
                 "message": "Unauthorized",
             }, 401)
+            resp.headers['Server'] = None
+            return resp
 
         if check_if_sqli(username):
-            return make_response({
+            resp = make_response({
                 "status": "403",
                 "message": "Forbidden"
             }, 403)
+            resp.headers['Server'] = None
+            return resp
 
         dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
         usernames = dao.sql.fetchall()
         if not usernames:
-            return make_response({
+            resp = make_response({
                 "status": "404",
                 "message": "Not found"
             }, 404)
+            resp.headers['Server'] = None
+            return resp
 
         dao.sql.execute(f"SELECT og_name FROM files WHERE owner = \'{username}\'")
         numrows = dao.sql.rowcount
@@ -479,7 +566,10 @@ def save_file():
             file = json.dumps(file)
             files.append(file)
 
-        return make_response(jsonify({"files": files}), 200)
+        resp = make_response(jsonify({"files": files}), 200)
+        resp.headers['Server'] = None
+        return resp
+
 
 def generate_id():
     dao.sql.execute(f"SELECT path FROM files;")
