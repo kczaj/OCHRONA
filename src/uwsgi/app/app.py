@@ -207,7 +207,7 @@ def save_note():
             "message": "Forbidden"
         }, 403)
 
-    if check_if_sqli(title) or check_if_sqli(body) or check_if_sqli(username):
+    if check_if_sqli(title) or check_if_sqli(body) or check_if_sqli(username) or check_if_sqli(password):
         return make_response({
             "status": "403",
             "message": "Forbidden"
@@ -230,6 +230,8 @@ def save_note():
             "message": "Created",
         }, 201)
     else:
+        hashed_password = prepare_password(password)
+        hashed_password = bcrypt.hashpw(hashed_password.encode("utf-8"), bcrypt.gensalt(14)).decode("utf-8")
         salt = get_random_bytes(16)
         key = PBKDF2(password, salt)
         iv = get_random_bytes(16)
@@ -238,7 +240,7 @@ def save_note():
         note_to_db = base64.b64encode(iv + salt + encrypted_note).decode("utf-8")
 
         dao.sql.execute(
-            f"INSERT INTO notes (title, body, owner) VALUES (\'{title}\', \'{note_to_db}\', \'{username} \');")
+            f"INSERT INTO notes (title, body, owner, password) VALUES (\'{title}\', \'{note_to_db}\', \'{username} \', \'{hashed_password} \');")
         dao.db.commit()
         return make_response({
             "status": "201",
@@ -278,6 +280,21 @@ def decrypt_note():
             "status": "404",
             "message": "Not found"
         }, 404)
+
+    dao.sql.execute(f"SELECT password FROM notes WHERE owner=\'{username}\'")
+    password_db = dao.sql.fetchone()
+    password_form = prepare_password(password)
+    if not password_db:
+        return make_response({
+            "status": "400",
+            "message": "Bad request"
+        }, 400)
+
+    if not bcrypt.checkpw(password_form.encode("utf-8"), password_db[0].encode("utf-8")):
+        return make_response({
+            "status": "403",
+            "message": "Forbidden"
+        }, 403)
 
     dao.sql.execute(f"SELECT body FROM notes WHERE id = \'{id}\' AND owner = \'{username}\';")
     note = dao.sql.fetchone()

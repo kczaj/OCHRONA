@@ -4,7 +4,7 @@
   - [X] Szyfrowanie
   - [X] Odszyfrowanie
   - [X] Udostępnianie notatek nieszyfrowanych
-- [ ] Pliki
+- [X] Pliki
 - [ ] Moduł uwierzytelniania 
   - [ ] Walidację danych wejściowych
     - [ ] Opóźnienia i limity prób
