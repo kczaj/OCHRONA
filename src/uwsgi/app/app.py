@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from flask import Flask, render_template, make_response, request, session, redirect, jsonify
 from flask_cors import CORS, cross_origin
@@ -21,6 +22,7 @@ cors = CORS(app)
 app.secret_key = os.environ.get("SECRET_KEY")
 db = redis.Redis(host="redis", port=6379)
 app.config["SESSION_COOKIE_SECURE"] = True
+app.config['UPLOAD_FOLDER'] = {'png', 'jpg', 'pdf', 'txt'}
 
 dao = None
 
@@ -53,7 +55,7 @@ def new_file():
     if "username" not in session.keys():
         return redirect("/")
     else:
-        return make_response(render_template("new_note.html"), 200)
+        return make_response(render_template("add.html"), 200)
 
 
 def check_if_sqli(value):
@@ -371,3 +373,106 @@ def get_public_notes():
         notes.append(note)
 
     return make_response(jsonify({"notes": notes}), 200)
+
+
+@app.route("/file/", methods=["GET","POST"])
+@cross_origin(origins=["https://localhost"])
+def save_file():
+    if request.method == "POST":
+        file = request.files["file"] if "file" in request.files else None
+
+        if file is None:
+            return make_response({
+                "status": "400",
+                "message": "Bad request",
+            }, 400)
+
+        username = session["username"] if "username" in session.keys() else None
+        if username is None:
+            return make_response({
+                "status": "401",
+                "message": "Unauthorized",
+            }, 401)
+
+        file_name = file.filename.split(".")[0]
+
+        if check_if_sqli(file_name) or check_if_sqli(username):
+            return make_response({
+                "status": "403",
+                "message": "Forbidden"
+            }, 403)
+
+        dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+        usernames = dao.sql.fetchall()
+        if not usernames:
+            return make_response({
+                "status": "404",
+                "message": "Not found"
+            }, 404)
+
+        if not os.path.exists("app/files/"):
+            os.mkdir("app/files/")
+
+        file_id = generate_id()
+
+        filename = file_id + "." + file.filename.split(".")[1]
+
+        path_to_file = os.path.join("app/files/", filename)
+
+        file.save(path_to_file)
+
+        dao.sql.execute(
+            f"INSERT INTO files (path, og_name, owner) VALUES (\'{path_to_file}\', \'{file.filename}\', \'{username} \');")
+        dao.db.commit()
+        return make_response({
+            "status": "201",
+            "message": "Created",
+        }, 201)
+    elif request.method == "GET":
+        username = session["username"] if "username" in session.keys() else None
+        if username is None:
+            return make_response({
+                "status": "401",
+                "message": "Unauthorized",
+            }, 401)
+
+        if check_if_sqli(username):
+            return make_response({
+                "status": "403",
+                "message": "Forbidden"
+            }, 403)
+
+        dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+        usernames = dao.sql.fetchall()
+        if not usernames:
+            return make_response({
+                "status": "404",
+                "message": "Not found"
+            }, 404)
+
+        dao.sql.execute(f"SELECT og_name FROM files WHERE owner = \'{username}\'")
+        numrows = dao.sql.rowcount
+
+        files = []
+        for x in range(0, numrows):
+            file_db = dao.sql.fetchone()
+            file = {
+                "name": str(file_db[0])
+            }
+            file = json.dumps(file)
+            files.append(file)
+
+        return make_response(jsonify({"files": files}), 200)
+
+def generate_id():
+    dao.sql.execute(f"SELECT path FROM files;")
+    numrows = dao.sql.rowcount
+    ids = []
+    for x in range(0, numrows):
+        element = dao.sql.fetchone()[0]
+        ids.append(element)
+
+    while True:
+        file_id = uuid.uuid4().__str__()
+        if file_id not in ids:
+            return file_id

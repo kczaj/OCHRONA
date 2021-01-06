@@ -7,9 +7,11 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
     await setTables()
 
+
     async function setTables() {
         let tbodyMy = document.getElementById("tbodyMy")
         let tbodyPub = document.getElementById("tbodyPub")
+        let tbodyFile = document.getElementById("tbodyFiles")
         let title = document.getElementById("title")
         let body = document.getElementById("body")
         let password = document.getElementById("password")
@@ -68,6 +70,18 @@ document.addEventListener("DOMContentLoaded", async (e) => {
                     body.appendChild(text)
                     password.disable = true
                 })
+            })
+
+            let fileRes = await getFileNames()
+            let files = fileRes["files"]
+            files.forEach((element) => {
+                let file = JSON.parse(element)
+
+                let newRow = tbodyFile.insertRow()
+
+                let newCell = newRow.insertCell()
+                let text = document.createTextNode(file["name"])
+                newCell.appendChild(text)
             })
         } catch (e) {
             console.log(e)
@@ -132,6 +146,21 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
     async function getPublicNotes() {
         let requestURL = baseURL + "public/"
+        let requestParam = {
+            method: "GET",
+            redirect: "follow",
+        };
+
+        let res = await fetch(requestURL, requestParam)
+        if (res.status === 200) {
+            return await res.json()
+        } else {
+            throw "Something went wrong"
+        }
+    }
+
+    async function getFileNames() {
+        let requestURL = baseURL + "file/"
         let requestParam = {
             method: "GET",
             redirect: "follow",

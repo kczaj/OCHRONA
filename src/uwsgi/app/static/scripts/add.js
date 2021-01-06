@@ -1,8 +1,11 @@
 document.addEventListener("DOMContentLoaded", (e) => {
     let baseURL = "https://localhost/"
     let saveBtn = document.getElementById("saveBtn")
+    let saveFileBtn = document.getElementById("saveFileBtn")
     let alert = document.getElementById("alert")
+    let alertFile = document.getElementById("alertFile")
     alert.style.display = "none"
+    alertFile.style.display = "none"
 
     saveBtn.addEventListener("click", async (e) => {
         e.preventDefault()
@@ -40,7 +43,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
                     throw "Something went wrong"
                 }
             }
-        } catch(err) {
+        } catch (err) {
             let getSpan = document.getElementById("alertR")
             if (getSpan !== null) {
                 alert.removeChild(getSpan)
@@ -52,10 +55,51 @@ document.addEventListener("DOMContentLoaded", (e) => {
             alert.appendChild(span)
             alert.style.display = "block"
         }
+    });
+
+    saveFileBtn.addEventListener("click", async (e) => {
+        e.preventDefault()
+        let fileInput = document.getElementById("file")
+
+        try {
+            if (fileInput.files.length == 0) {
+                throw "You need to provide file"
+            }
+            let fileForm = document.getElementById("file-form")
+            let formData = new FormData(fileForm)
+            let res = await saveFile(formData)
+            if (res !== 201) {
+                throw "Something went wrong"
+            }
+            window.location.href = "/list/"
+        } catch (err) {
+            let getSpan = document.getElementById("alertF")
+            if (getSpan !== null) {
+                alertFile.removeChild(getSpan)
+            }
+            let span = document.createElement("span")
+            span.setAttribute("id", "alertF")
+            let text = document.createTextNode(err)
+            span.appendChild(text)
+            alertFile.appendChild(span)
+            alertFile.style.display = "block"
+        }
     })
 
     async function saveNote(formData) {
         let requestURL = baseURL + "savenote/"
+        let requestParam = {
+            method: "POST",
+            body: formData,
+            redirect: "follow",
+        };
+
+        let res = await fetch(requestURL, requestParam)
+        return res.status
+    }
+
+    async function saveFile(formData) {
+        let requestURL = baseURL + "file/"
         let requestParam = {
             method: "POST",
             body: formData,
