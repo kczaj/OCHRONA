@@ -6,8 +6,8 @@
   - [X] Udostępnianie notatek nieszyfrowanych
 - [X] Pliki
 - [ ] Moduł uwierzytelniania 
-  - [ ] Walidację danych wejściowych
-    - [ ] Opóźnienia i limity prób
+  - [X] Walidację danych wejściowych
+    - [X] Opóźnienia i limity prób
     - [X] Ograniczone informowanie o błędach
   - [ ] Bezpieczne przechowywanie hasła
     - [X] Wykorzystanie kryptograficznych funcji mieszających, wykorzystanie soli, wielokrotne hashowanie
