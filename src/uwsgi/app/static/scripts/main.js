@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
                 let formData = new FormData(loginForm)
                 let result = await loginUser(formData)
                 if (result === 200){
-                    window.location.href = "list/"
+                    window.location.href = "user/"
                 } else{
                     alertLogin.style.display = "block"
                 }
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
                     let formData = new FormData(registerForm)
                     let result = await registerUser(formData)
                     if (result === 200) {
-                        window.location.href = "list/"
+                        window.location.href = "user/"
                     } else {
                         let getSpan = document.getElementById("alertR")
                         if (getSpan !== null) {

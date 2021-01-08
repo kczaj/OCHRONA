@@ -2,6 +2,7 @@ import json
 import uuid
 
 from flask import Flask, render_template, make_response, request, session, redirect, jsonify
+from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS, cross_origin
 import hashlib
 import bcrypt
@@ -23,6 +24,7 @@ app.secret_key = os.environ.get("SECRET_KEY")
 db = redis.Redis(host="redis", port=6379)
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config['UPLOAD_FOLDER'] = {'png', 'jpg', 'pdf', 'txt'}
+csrf = CSRFProtect(app)
 
 dao = None
 
@@ -42,15 +44,21 @@ def index():
     return resp
 
 
-@app.route('/list/', methods=["GET"])
+@app.route('/user/', methods=["GET"])
 @cross_origin(origins=["https://localhost"])
 def after_log():
     if "username" not in session.keys():
         return redirect("/")
-    else:
-        resp = make_response(render_template("after_log.html"), 200)
-        resp.headers['Server'] = None
-        return resp
+
+    username = session["username"]
+    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    usernames = dao.sql.fetchall()
+    if not usernames:
+        return redirect("/")
+
+    resp = make_response(render_template("after_log.html"), 200)
+    resp.headers['Server'] = None
+    return resp
 
 
 @app.route('/note/', methods=["GET"])
@@ -58,10 +66,16 @@ def after_log():
 def new_file():
     if "username" not in session.keys():
         return redirect("/")
-    else:
-        resp = make_response(render_template("add.html"), 200)
-        resp.headers['Server'] = None
-        return resp
+
+    username = session["username"]
+    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    usernames = dao.sql.fetchall()
+    if not usernames:
+        return redirect("/")
+
+    resp = make_response(render_template("add.html"), 200)
+    resp.headers['Server'] = None
+    return resp
 
 
 def check_if_sqli(value):

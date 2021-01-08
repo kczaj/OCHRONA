@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
                 let formData = new FormData(form)
                 let result = await saveNote(formData)
                 if (result === 201) {
-                    window.location.href = "/list/"
+                    window.location.href = "/user/"
                 } else {
                     throw "Something went wrong"
                 }
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
             if (res !== 201) {
                 throw "Something went wrong"
             }
-            window.location.href = "/list/"
+            window.location.href = "/user/"
         } catch (err) {
             let getSpan = document.getElementById("alertF")
             if (getSpan !== null) {

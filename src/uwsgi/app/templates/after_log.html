@@ -13,9 +13,10 @@
 <body class="text-center">
 <div class="container">
     <div class="row float-right">
-        <a class="btn btn-primary mx-2" href="/list/">Home</a>
+        <a class="btn btn-primary mx-2" href="/user/">Home</a>
         <a class="btn btn-primary mx-2" href="/note/">New note</a>
         <form method="post" action="https://localhost/logout/">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="submit" class="btn btn-primary mx-2" value="Log out">
         </form>
     </div>
@@ -72,6 +73,7 @@
                 <textarea class="form-control my-3" rows="5" minlength="1" maxlength="1000" name="body" disabled
                           id="body"></textarea>
                 <input type="password" class="form-control my-3" placeholder="Password" name="password" id="password">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="submit" id="decryptBtn" class="btn btn-primary my-2" value="Decrypt"><br>
             </form>
             <div class="alert alert-danger" role="alert" id="alert">
