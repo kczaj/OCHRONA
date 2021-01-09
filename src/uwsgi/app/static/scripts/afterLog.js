@@ -12,9 +12,11 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         let tbodyMy = document.getElementById("tbodyMy")
         let tbodyPub = document.getElementById("tbodyPub")
         let tbodyFile = document.getElementById("tbodyFiles")
+        let tbodyIps = document.getElementById("tbodyIps")
         let title = document.getElementById("title")
         let body = document.getElementById("body")
         let password = document.getElementById("password")
+
         try {
             let res = await getNotes()
             let notes = res["notes"]
@@ -81,6 +83,18 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
                 let newCell = newRow.insertCell()
                 let text = document.createTextNode(file["name"])
+                newCell.appendChild(text)
+            })
+
+            let ipsRes = await getIps()
+            let ips = ipsRes["ips"]
+            ips.forEach((element) => {
+                let ip = JSON.parse(element)
+
+                let newRow = tbodyIps.insertRow()
+
+                let newCell = newRow.insertCell()
+                let text = document.createTextNode(ip["ip"])
                 newCell.appendChild(text)
             })
         } catch (e) {
@@ -161,6 +175,22 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
     async function getFileNames() {
         let requestURL = baseURL + "file/"
+        let requestParam = {
+            method: "GET",
+            redirect: "follow",
+        };
+
+        let res = await fetch(requestURL, requestParam)
+        if (res.status === 200) {
+            return await res.json()
+        } else {
+            throw "Something went wrong"
+        }
+    }
+
+
+    async function getIps() {
+        let requestURL = baseURL + "ips/"
         let requestParam = {
             method: "GET",
             redirect: "follow",

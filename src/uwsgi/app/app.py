@@ -142,6 +142,13 @@ def register():
     data_db = dao.sql.fetchone()
     name = "user_" + str(data_db[0])
     db.hset(name, "count", 0)
+
+    ip = request.remote_addr
+    dao.sql.execute(f"SELECT ip FROM ips WHERE ip=\'{ip}\';")
+    ips = dao.sql.fetchall()
+    if not ips:
+        dao.sql.execute(f"INSERT INTO ips (ip, username) VALUES (\'{ip}\', \'{username}\');")
+
     dao.db.commit()
     session["username"] = username
     resp = make_response({
@@ -200,6 +207,13 @@ def login():
         if bcrypt.checkpw(password_form.encode("utf-8"), data_db[1].encode("utf-8")):
             session["username"] = username
             db.hset(name, "count", 0)
+
+            ip = request.remote_addr
+            dao.sql.execute(f"SELECT ip FROM ips WHERE ip=\'{ip}\';")
+            ips = dao.sql.fetchall()
+            if not ips:
+                dao.sql.execute(f"INSERT INTO ips (ip, username) VALUES (\'{ip}\', \'{username}\');")
+
             resp = make_response({
                 "status": "200",
                 "message": "Logged in"
@@ -225,7 +239,9 @@ def login():
 @app.route("/logout/", methods=["POST"])
 @cross_origin(origins=["https://localhost"])
 def logout():
-    session.pop("username", None)
+    username = session.pop("username", None)
+    ip = request.remote_addr
+    dao.sql.execute(f"DELETE FROM ips WHERE ip=\'{ip}\' AND username = \'{username}\';")
     return redirect("/")
 
 
@@ -473,6 +489,44 @@ def get_public_notes():
         notes.append(note)
 
     resp = make_response(jsonify({"notes": notes}), 200)
+    resp.headers['Server'] = None
+    return resp
+
+
+@app.route("/ips/", methods=["GET"])
+@cross_origin(origins=["https://localhost"])
+def get_ips():
+    username = session["username"] if "username" in session.keys() else None
+    if username is None:
+        resp = make_response({
+            "status": "401",
+            "message": "Unauthorized",
+        }, 401)
+        resp.headers['Server'] = None
+        return resp
+    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    usernames = dao.sql.fetchall()
+    if not usernames:
+        resp = make_response({
+            "status": "404",
+            "message": "Not found"
+        }, 404)
+        resp.headers['Server'] = None
+        return resp
+
+    dao.sql.execute(f"SELECT ip FROM ips WHERE username=\'{username}\';")
+    numrows = dao.sql.rowcount
+
+    ips = []
+    for x in range(0, numrows):
+        ip_db = dao.sql.fetchone()
+        ip = {
+            "ip": str(ip_db[0]),
+        }
+        ip = json.dumps(ip)
+        ips.append(ip)
+
+    resp = make_response(jsonify({"ips": ips}), 200)
     resp.headers['Server'] = None
     return resp
 

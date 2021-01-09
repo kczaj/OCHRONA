@@ -21,8 +21,8 @@
   - [X] Wszystkie dane wejściowe od użytkownika podlegają walidacji z negatywnym nastawieniem
   - [X] Weryfikacja liczby nieudanych prób logowania
   - [X] Sprawdzanie jakości hasła (np. jego entropii)
-  - [ ] Dodać opóźnienie podczas logowania
-  - [ ] Zabezpieczenie przeciwko Cross-Site Request Forgery
+  - [X] Dodać opóźnienie podczas logowania
+  - [X] Zabezpieczenie przeciwko Cross-Site Request Forgery
   - [ ] Możliwość odzyskania dostępu w przypadku utraty hasła
   - [ ] Informowanie użytkownika o nowych podłączeniach do jego konta
   - [ ] Zostawienie honeypots

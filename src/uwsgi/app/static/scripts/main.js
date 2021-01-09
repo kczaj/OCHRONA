@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
         return true;
     }
 
-    loginBtn.addEventListener("click", async(e) => {
+    loginBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         let usernameInput = document.getElementById("inputUsernameS")
         let passwordInput = document.getElementById("inputPasswordS")
@@ -32,9 +32,9 @@ document.addEventListener("DOMContentLoaded", (e) => {
                 let loginForm = document.getElementById("login-form")
                 let formData = new FormData(loginForm)
                 let result = await loginUser(formData)
-                if (result === 200){
+                if (result === 200) {
                     window.location.href = "user/"
-                } else{
+                } else {
                     alertLogin.style.display = "block"
                 }
             } else {
@@ -115,6 +115,9 @@ document.addEventListener("DOMContentLoaded", (e) => {
             let password = passwordInput.value;
 
             try {
+                // if (calculateEntropy(password) < 4) {
+                //     throw "You need to create harder password"
+                // }
                 if (validateFieldsRegister(name, surname, username, email, password)) {
                     let registerForm = document.getElementById("register-form")
                     let formData = new FormData(registerForm)
