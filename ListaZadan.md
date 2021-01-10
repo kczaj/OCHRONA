@@ -5,14 +5,14 @@
   - [X] Odszyfrowanie
   - [X] Udostępnianie notatek nieszyfrowanych
 - [X] Pliki
-- [ ] Moduł uwierzytelniania 
+- [X] Moduł uwierzytelniania 
   - [X] Walidację danych wejściowych
     - [X] Opóźnienia i limity prób
     - [X] Ograniczone informowanie o błędach
-  - [ ] Bezpieczne przechowywanie hasła
+  - [X] Bezpieczne przechowywanie hasła
     - [X] Wykorzystanie kryptograficznych funcji mieszających, wykorzystanie soli, wielokrotne hashowanie
     - [X] Kontrola siły hasła, żeby uświadomić użytkownikowi problem
-    - [ ] Monitorowanie pracy systemu (komputery jakie chciały się z kontem połączyć)
+    - [X] Monitorowanie pracy systemu (komputery jakie chciały się z kontem połączyć)
   - [ ] Zarządzanie uprawnieniami do zasobów
 ## Wymagania (ISOD)
   - [X] Projekt powinien być skonteryzowany za pomocą Docker
@@ -24,7 +24,7 @@
   - [X] Dodać opóźnienie podczas logowania
   - [X] Zabezpieczenie przeciwko Cross-Site Request Forgery
   - [ ] Możliwość odzyskania dostępu w przypadku utraty hasła
-  - [ ] Informowanie użytkownika o nowych podłączeniach do jego konta
+  - [X] Informowanie użytkownika o nowych podłączeniach do jego konta
   - [ ] Zostawienie honeypots
   - [ ] Mechanizm Content-Security-Policy
   - [X] Wyłączenie nagłówka Server

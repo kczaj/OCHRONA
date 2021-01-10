@@ -44,6 +44,63 @@ def index():
     return resp
 
 
+@app.route('/password/', methods=["GET", "POST"])
+@cross_origin(origins=["https://localhost"])
+def password():
+    if request.method == "POST":
+        email = request.form.get("email") if request.form.get("email") is not "" or request.form.get(
+            "email") is not None else None
+        if email is None:
+            resp = make_response({
+                "status": "403",
+                "message": "Forbidden"
+            }, 403)
+            resp.headers['Server'] = None
+            return resp
+        if check_if_sqli(email):
+            resp = make_response({
+                "status": "403",
+                "message": "Forbidden"
+            }, 403)
+            resp.headers['Server'] = None
+            return resp
+        dao.sql.execute(f"SELECT username FROM users WHERE email = \'{email}\';")
+        usernames = dao.sql.fetchall()
+        if not usernames:
+            resp = make_response({
+                "status": "404",
+                "message": "Not found"
+            }, 404)
+            resp.headers['Server'] = None
+            return resp
+        username = usernames[0]
+        token = uuid.uuid4().__str__()
+        db.sadd(token, username[0])
+        app.logger.debug(f"Token created for {email} and the reset website is https://localhost/password/{token}")
+        db.expire(token, 300)
+        link = f'https://localhost/password/{token}'
+        resp = make_response({
+            "status": "201",
+            "message": "Token created",
+            "link": link
+        }, 201)
+        resp.headers['Server'] = None
+        return resp
+    else:
+        resp = make_response(render_template("forgot_password.html"), 200)
+        resp.headers['Server'] = None
+        return resp
+
+
+@app.route('/password/<string:token>', methods=["GET", "POST"])
+@cross_origin(origins=["https://localhost"])
+def reset_password():
+    if request.method == "GET":
+        resp = make_response(render_template("forgot_password.html"), 200)
+        resp.headers['Server'] = None
+        return resp
+
+
 @app.route('/user/', methods=["GET"])
 @cross_origin(origins=["https://localhost"])
 def after_log():
@@ -242,6 +299,7 @@ def logout():
     username = session.pop("username", None)
     ip = request.remote_addr
     dao.sql.execute(f"DELETE FROM ips WHERE ip=\'{ip}\' AND username = \'{username}\';")
+    dao.db.commit()
     return redirect("/")
 
 
