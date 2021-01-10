@@ -21,10 +21,12 @@
                        autofocus>
                 <input type="password" id="inputPasswordS" class="form-control my-1" name="password"
                        placeholder="Password" required>
-                <a href="/password/" class="stretched-link my-3">Forgot password</a>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             </form>
             <input class="btn btn-lg btn-primary" type="button" id="loginBtn" value="Sign in">
+            <div>
+                <a href="/password/">Forgot password</a>
+            </div>
             <div class="alert alert-danger" role="alert" id="alertLogin">
                 Wrong username or password.
             </div>

@@ -1,7 +1,7 @@
 import json
 import uuid
 
-from flask import Flask, render_template, make_response, request, session, redirect, jsonify
+from flask import Flask, render_template, make_response, request, session, redirect, jsonify, url_for
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS, cross_origin
 import hashlib
@@ -52,9 +52,9 @@ def password():
             "email") is not None else None
         if email is None:
             resp = make_response({
-                "status": "403",
-                "message": "Forbidden"
-            }, 403)
+                "status": "400",
+                "message": "No password provided"
+            }, 400)
             resp.headers['Server'] = None
             return resp
         if check_if_sqli(email):
@@ -94,9 +94,59 @@ def password():
 
 @app.route('/password/<string:token>', methods=["GET", "POST"])
 @cross_origin(origins=["https://localhost"])
-def reset_password():
+def reset_password(token):
     if request.method == "GET":
-        resp = make_response(render_template("forgot_password.html"), 200)
+        if db.exists(token) == 1:
+            resp = make_response(render_template("reset_password.html", token=token, visible="none"), 200)
+            resp.headers['Server'] = None
+            return resp
+        else:
+            return redirect("/")
+    else:
+        if db.exists(token) == 0:
+            resp = make_response({
+                "status": "404",
+                "message": "Not found"
+            }, 404)
+            resp.headers['Server'] = None
+            return resp
+        password = request.form.get("password") if request.form.get("password") is not "" or request.form.get(
+            "password") is not None else None
+        if password is None:
+            resp = make_response({
+                "status": "400",
+                "message": "No password provided"
+            }, 400)
+            resp.headers['Server'] = None
+            return resp
+        if check_if_sqli(password):
+            resp = make_response({
+                "status": "403",
+                "message": "Forbidden"
+            }, 403)
+            resp.headers['Server'] = None
+            return resp
+
+        username_list = list(db.smembers(token))
+        username = username_list[0].decode("utf-8")
+        dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+        usernames = dao.sql.fetchone()
+        if not usernames:
+            resp = make_response({
+                "status": "404",
+                "message": "Not found"
+            }, 404)
+            resp.headers['Server'] = None
+            return resp
+
+        hashed_password = prepare_password(password)
+        hashed_password = bcrypt.hashpw(hashed_password.encode("utf-8"), bcrypt.gensalt(14)).decode("utf-8")
+
+        dao.sql.execute(f"UPDATE users SET password = \'{hashed_password}\' WHERE username = \'{username}\';")
+        dao.db.commit()
+
+        db.delete(token)
+        resp = make_response(render_template("reset_password.html", token="uiwqd", visible="block"), 200)
         resp.headers['Server'] = None
         return resp
 
