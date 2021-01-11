@@ -23,8 +23,8 @@
   - [X] Sprawdzanie jakości hasła (np. jego entropii)
   - [X] Dodać opóźnienie podczas logowania
   - [X] Zabezpieczenie przeciwko Cross-Site Request Forgery
-  - [ ] Możliwość odzyskania dostępu w przypadku utraty hasła
+  - [X] Możliwość odzyskania dostępu w przypadku utraty hasła
   - [X] Informowanie użytkownika o nowych podłączeniach do jego konta
-  - [ ] Zostawienie honeypots
+  - [X] Zostawienie honeypots
   - [ ] Mechanizm Content-Security-Policy
   - [X] Wyłączenie nagłówka Server

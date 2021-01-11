@@ -7,3 +7,4 @@ flask-cors
 pycryptodome
 redis
 Flask-WTF
+termcolor

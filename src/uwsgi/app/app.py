@@ -13,6 +13,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
 import redis
+from termcolor import colored
 
 from app.init import init
 
@@ -314,6 +315,9 @@ def login():
         if bcrypt.checkpw(password_form.encode("utf-8"), data_db[1].encode("utf-8")):
             session["username"] = username
             db.hset(name, "count", 0)
+
+            if username == "admin":
+                print(colored("WARNING Someone hacked this app", "red"))
 
             ip = request.remote_addr
             dao.sql.execute(f"SELECT ip FROM ips WHERE ip=\'{ip}\';")
