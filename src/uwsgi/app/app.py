@@ -27,15 +27,7 @@ app.config["SESSION_COOKIE_SECURE"] = True
 app.config['UPLOAD_FOLDER'] = {'png', 'jpg', 'pdf', 'txt'}
 csrf = CSRFProtect(app)
 
-dao = None
-
-
-@app.before_first_request
-def init_db():
-    # init()
-    global dao
-    dao = DAO()
-
+dao = DAO()
 
 @app.route('/', methods=["GET"])
 @cross_origin(origins=["https://localhost"])
@@ -65,7 +57,7 @@ def password():
             }, 403)
             resp.headers['Server'] = None
             return resp
-        dao.sql.execute(f"SELECT username FROM users WHERE email = \'{email}\';")
+        dao.sql.execute("SELECT username FROM users WHERE email = %(email)s;", {'email': email})
         usernames = dao.sql.fetchall()
         if not usernames:
             resp = make_response({
@@ -130,7 +122,7 @@ def reset_password(token):
 
         username_list = list(db.smembers(token))
         username = username_list[0].decode("utf-8")
-        dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+        dao.sql.execute("SELECT username FROM users WHERE username = %(username)s;", {'username': username})
         usernames = dao.sql.fetchone()
         if not usernames:
             resp = make_response({
@@ -143,7 +135,7 @@ def reset_password(token):
         hashed_password = prepare_password(password)
         hashed_password = bcrypt.hashpw(hashed_password.encode("utf-8"), bcrypt.gensalt(14)).decode("utf-8")
 
-        dao.sql.execute(f"UPDATE users SET password = \'{hashed_password}\' WHERE username = \'{username}\';")
+        dao.sql.execute("UPDATE users SET password = %(hashed_password)s WHERE username = %(username)s;", {'hashed_password': hashed_password, 'username': username})
         dao.db.commit()
 
         db.delete(token)
@@ -159,7 +151,7 @@ def after_log():
         return redirect("/")
 
     username = session["username"]
-    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    dao.sql.execute("SELECT username FROM users WHERE username = %(username)s;", {'username': username})
     usernames = dao.sql.fetchall()
     if not usernames:
         return redirect("/")
@@ -176,7 +168,7 @@ def new_file():
         return redirect("/")
 
     username = session["username"]
-    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    dao.sql.execute("SELECT username FROM users WHERE username = %(username)s;", {'username': username})
     usernames = dao.sql.fetchall()
     if not usernames:
         return redirect("/")
@@ -187,7 +179,7 @@ def new_file():
 
 
 def check_if_sqli(value):
-    if ";" in value or "#" in value or "--" in value or "/*" in value or "'" in value:
+    if ";" in value or "#" in value or "--" in value or "/*" in value or "'" in value :
         return True
     else:
         return False
@@ -222,7 +214,7 @@ def register():
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT email FROM users WHERE email=\'{email}\'; ")
+    dao.sql.execute("SELECT email FROM users WHERE email= %(email)s;", {'email': email})
     emails = dao.sql.fetchall()
     if emails:
         resp = make_response({
@@ -231,7 +223,7 @@ def register():
         }, 400)
         resp.headers['Server'] = None
         return resp
-    dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\';")
+    dao.sql.execute("SELECT username FROM users WHERE username = %(username)s;", {'username': username})
     usernames = dao.sql.fetchall()
     if usernames:
         resp = make_response({
@@ -245,17 +237,17 @@ def register():
     password_to_db = bcrypt.hashpw(password_to_db.encode("utf-8"), bcrypt.gensalt(14)).decode("utf-8")
 
     dao.sql.execute(
-        f"INSERT INTO users (email, name, surname, username, password) VALUES (\'{email}\', \'{name}\', \'{surname}\', \'{username}\', \'{password_to_db}\');")
-    dao.sql.execute(f"SELECT id FROM users WHERE username=\'{username}\'; ")
+        "INSERT INTO users (email, name, surname, username, password) VALUES (%(email)s, %(name)s, %(surname)s, %(username)s, %(password_to_db)s);", {'email': email, 'name': name, 'surname': surname, 'username': username, 'password_to_db': password_to_db })
+    dao.sql.execute("SELECT id FROM users WHERE username=%(username)s;", {'username': username})
     data_db = dao.sql.fetchone()
     name = "user_" + str(data_db[0])
     db.hset(name, "count", 0)
 
     ip = request.remote_addr
-    dao.sql.execute(f"SELECT ip FROM ips WHERE ip=\'{ip}\';")
+    dao.sql.execute("SELECT ip FROM ips WHERE ip=%(ip)s;", {'ip': ip})
     ips = dao.sql.fetchall()
     if not ips:
-        dao.sql.execute(f"INSERT INTO ips (ip, username) VALUES (\'{ip}\', \'{username}\');")
+        dao.sql.execute("INSERT INTO ips (ip, username) VALUES (%(ip)s, %(username)s);", {'ip': ip, 'username': username})
 
     dao.db.commit()
     session["username"] = username
@@ -289,7 +281,7 @@ def login():
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT id, password FROM users WHERE username=\'{username}\'; ")
+    dao.sql.execute("SELECT id, password FROM users WHERE username=%(username)s;", {'username': username})
     data_db = dao.sql.fetchone()
     if not data_db:
         resp = make_response({
@@ -320,10 +312,10 @@ def login():
                 print(colored("WARNING Someone hacked this app", "red"))
 
             ip = request.remote_addr
-            dao.sql.execute(f"SELECT ip FROM ips WHERE ip=\'{ip}\';")
+            dao.sql.execute("SELECT ip FROM ips WHERE ip=%(ip)s;", {'ip': ip})
             ips = dao.sql.fetchall()
             if not ips:
-                dao.sql.execute(f"INSERT INTO ips (ip, username) VALUES (\'{ip}\', \'{username}\');")
+                dao.sql.execute("INSERT INTO ips (ip, username) VALUES ( %(ip)s, %(username)s);", {'ip': ip, 'username': username})
 
             resp = make_response({
                 "status": "200",
@@ -352,7 +344,7 @@ def login():
 def logout():
     username = session.pop("username", None)
     ip = request.remote_addr
-    dao.sql.execute(f"DELETE FROM ips WHERE ip=\'{ip}\' AND username = \'{username}\';")
+    dao.sql.execute("DELETE FROM ips WHERE ip=%(ip)s AND username = %(username)s;", {'ip': ip, 'username': username})
     dao.db.commit()
     return redirect("/")
 
@@ -389,7 +381,7 @@ def save_note():
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\'")
+    dao.sql.execute("SELECT username FROM users WHERE username = %(username)s;", {'username': username})
     usernames = dao.sql.fetchone()
     if not usernames:
         resp = make_response({
@@ -401,7 +393,7 @@ def save_note():
 
     if password is None or password is "":
         dao.sql.execute(
-            f"INSERT INTO notes (title, body) VALUES (\'{title}\', \'{body}\');")
+            "INSERT INTO notes (title, body) VALUES (%(title)s, %(body)s);", {'title': title, 'body': body})
         dao.db.commit()
         resp = make_response({
             "status": "201",
@@ -410,8 +402,6 @@ def save_note():
         resp.headers['Server'] = None
         return resp
     else:
-        hashed_password = prepare_password(password)
-        hashed_password = bcrypt.hashpw(hashed_password.encode("utf-8"), bcrypt.gensalt(14)).decode("utf-8")
         salt = get_random_bytes(16)
         key = PBKDF2(password, salt)
         iv = get_random_bytes(16)
@@ -420,7 +410,7 @@ def save_note():
         note_to_db = base64.b64encode(iv + salt + encrypted_note).decode("utf-8")
 
         dao.sql.execute(
-            f"INSERT INTO notes (title, body, owner, password) VALUES (\'{title}\', \'{note_to_db}\', \'{username} \', \'{hashed_password} \');")
+            "INSERT INTO notes (title, body, owner) VALUES (%(title)s, %(note_to_db)s, %(username)s);", {'title': title, 'note_to_db': note_to_db, 'username': username})
         dao.db.commit()
         resp = make_response({
             "status": "201",
@@ -448,7 +438,7 @@ def decrypt_note():
     if password is None or id is None or password is "" or id is "":
         resp = make_response({
             "status": "403",
-            "message": "Forbidden"
+            "message": "Forbidden1"
         }, 403)
         resp.headers['Server'] = None
         return resp
@@ -456,12 +446,12 @@ def decrypt_note():
     if check_if_sqli(password) or check_if_sqli(id) or check_if_sqli(username):
         resp = make_response({
             "status": "403",
-            "message": "Forbidden"
+            "message": "Forbidden2"
         }, 403)
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT username FROM users WHERE username=\'{username}\'")
+    dao.sql.execute("SELECT username FROM users WHERE username = %(username)s;", {'username': username})
     usernames = dao.sql.fetchone()
     if not usernames:
         resp = make_response({
@@ -471,26 +461,7 @@ def decrypt_note():
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT password FROM notes WHERE owner=\'{username}\'")
-    password_db = dao.sql.fetchone()
-    password_form = prepare_password(password)
-    if not password_db:
-        resp = make_response({
-            "status": "400",
-            "message": "Bad request"
-        }, 400)
-        resp.headers['Server'] = None
-        return resp
-
-    if not bcrypt.checkpw(password_form.encode("utf-8"), password_db[0].encode("utf-8")):
-        resp = make_response({
-            "status": "403",
-            "message": "Forbidden"
-        }, 403)
-        resp.headers['Server'] = None
-        return resp
-
-    dao.sql.execute(f"SELECT body FROM notes WHERE id = \'{id}\' AND owner = \'{username}\';")
+    dao.sql.execute("SELECT body FROM notes WHERE id = %(id)s AND  owner = %(username)s;", {'id': id, 'username': username})
     note = dao.sql.fetchone()
 
     if not note:
@@ -516,7 +487,7 @@ def decrypt_note():
         }, 200)
         resp.headers['Server'] = None
         return resp
-    except Exception:
+    except Exception :
         resp = make_response({
             "status": "400",
             "message": "Bad request",
@@ -537,7 +508,7 @@ def get_notes():
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    dao.sql.execute("SELECT username FROM users WHERE  username = %(username)s;", {'username': username})
     usernames = dao.sql.fetchall()
     if not usernames:
         resp = make_response({
@@ -547,7 +518,7 @@ def get_notes():
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT id, title FROM notes WHERE owner = \'{username}\';")
+    dao.sql.execute("SELECT id, title FROM notes WHERE  owner = %(username)s;", {'username': username})
     numrows = dao.sql.rowcount
 
     notes = []
@@ -576,7 +547,7 @@ def get_public_notes():
         }, 401)
         resp.headers['Server'] = None
         return resp
-    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    dao.sql.execute("SELECT username FROM users WHERE  username = %(username)s;", {'username': username})
     usernames = dao.sql.fetchall()
     if not usernames:
         resp = make_response({
@@ -586,7 +557,7 @@ def get_public_notes():
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT id, title, body FROM notes WHERE owner IS NULL;")
+    dao.sql.execute("SELECT id, title, body FROM notes WHERE owner IS NULL;")
     numrows = dao.sql.rowcount
 
     notes = []
@@ -616,7 +587,7 @@ def get_ips():
         }, 401)
         resp.headers['Server'] = None
         return resp
-    dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+    dao.sql.execute("SELECT username FROM users WHERE  username = %(username)s;", {'username': username})
     usernames = dao.sql.fetchall()
     if not usernames:
         resp = make_response({
@@ -626,7 +597,7 @@ def get_ips():
         resp.headers['Server'] = None
         return resp
 
-    dao.sql.execute(f"SELECT ip FROM ips WHERE username=\'{username}\';")
+    dao.sql.execute("SELECT ip FROM ips WHERE  username = %(username)s;", {'username': username})
     numrows = dao.sql.rowcount
 
     ips = []
@@ -676,7 +647,7 @@ def save_file():
             resp.headers['Server'] = None
             return resp
 
-        dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+        dao.sql.execute("SELECT username FROM users WHERE  username = %(username)s;", {'username': username})
         usernames = dao.sql.fetchall()
         if not usernames:
             resp = make_response({
@@ -698,7 +669,7 @@ def save_file():
         file.save(path_to_file)
 
         dao.sql.execute(
-            f"INSERT INTO files (path, og_name, owner) VALUES (\'{path_to_file}\', \'{file.filename}\', \'{username} \');")
+            "INSERT INTO files (path, og_name, owner) VALUES (%(path_to_file)s, %(filename)s, %(username)s);", {"path_to_file": path_to_file, 'filename': file.filename, 'username': username})
         dao.db.commit()
         resp = make_response({
             "status": "201",
@@ -724,7 +695,7 @@ def save_file():
             resp.headers['Server'] = None
             return resp
 
-        dao.sql.execute(f"SELECT username FROM users WHERE username = \'{username}\';")
+        dao.sql.execute("SELECT username FROM users WHERE username = %(username)s;", {'username': username})
         usernames = dao.sql.fetchall()
         if not usernames:
             resp = make_response({
@@ -734,7 +705,7 @@ def save_file():
             resp.headers['Server'] = None
             return resp
 
-        dao.sql.execute(f"SELECT og_name FROM files WHERE owner = \'{username}\'")
+        dao.sql.execute("SELECT og_name FROM files WHERE owner = %(username)s;", {'username': username})
         numrows = dao.sql.rowcount
 
         files = []
@@ -752,7 +723,7 @@ def save_file():
 
 
 def generate_id():
-    dao.sql.execute(f"SELECT path FROM files;")
+    dao.sql.execute("SELECT path FROM files;")
     numrows = dao.sql.rowcount
     ids = []
     for x in range(0, numrows):

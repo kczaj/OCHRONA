@@ -118,9 +118,12 @@ document.addEventListener("DOMContentLoaded", async (e) => {
             }
             let password = passwordInput.value
             check_field(password)
-            let formData = new FormData()
+            let formHtml = document.getElementById("note-form")
+            let formData = new FormData(formHtml)
             formData.append("password", password)
             formData.append("id", index)
+            let csrf = document.getElementById("csrf-token").value
+            formData.append("X-CSRFToken", csrf)
             let res = await decryptNote(formData)
             bodyNote.innerText = ''
             let text = document.createTextNode(res["message"])
