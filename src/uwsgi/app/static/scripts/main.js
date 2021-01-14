@@ -86,10 +86,10 @@ document.addEventListener("DOMContentLoaded", (e) => {
     passwordInput.addEventListener("change", (e) => {
         let password = passwordInput.value
         let entropy = calculateEntropy(password)
-        if (entropy > 4) {
+        if (entropy > 3) {
             progresBar.style.width = "100%"
             progresBar.className = "progress-bar bg-success"
-        } else if (entropy > 3) {
+        } else if (entropy > 2.5) {
             progresBar.style.width = "40%"
             progresBar.className = "progress-bar bg-warning"
         } else if (password === "") {

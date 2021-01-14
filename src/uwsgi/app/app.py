@@ -14,6 +14,7 @@ from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
 import redis
 from termcolor import colored
+import re
 
 from app.dao import DAO
 
@@ -30,7 +31,8 @@ dao = DAO()
 
 @app.after_request
 def after_request(resp):
-    resp.headers['Content-Security-Policy'] = 'default-src \'self\'; style-src \'self\' https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css'
+    resp.headers[
+        'Content-Security-Policy'] = 'default-src \'self\'; style-src \'self\' https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css'
     resp.headers['Server'] = None
     return resp
 
@@ -71,10 +73,8 @@ def password():
         username = usernames[0]
         token = uuid.uuid4().__str__()
         db.sadd(token, username[0])
-        app.logger.debug(f"Token created for {email} and the reset website is https://localhost/password/{token}")
         db.expire(token, 300)
-        link = f'https://localhost/password/{token}'
-        print(colored("Send email with link: " + link, "red"))
+        print(colored(f"Token created for {email} and the reset website is https://localhost/password/{token}", "red"))
         resp = make_response({
             "status": "201",
             "message": "Token created"
@@ -114,6 +114,12 @@ def reset_password(token):
                 "status": "403",
                 "message": "Forbidden"
             }, 403)
+            return resp
+        if check_password(password):
+            resp = make_response({
+                "status": "400",
+                "message": "Wrong password format"
+            }, 400)
             return resp
 
         username_list = list(db.smembers(token))
@@ -178,6 +184,45 @@ def check_if_sqli(value):
         return False
 
 
+def check_xss(value):
+    if "<" in value or ">" in value:
+        return True
+    else:
+        return False
+
+
+def check_password(value):
+    if len(value) < 8 or not re.match('^[a-zA-Z0-9!@#$%&*]+$', value):
+        print(colored("password", "red"))
+        return True
+    else:
+        return False
+
+
+def check_name(value):
+    if not re.match('^[a-zA-Z]+$', value):
+        print(colored("name", "red"))
+        return True
+    else:
+        return False
+
+
+def check_username(value):
+    if not re.match('^[a-zA-Z0-9]+$', value):
+        print(colored("username", "red"))
+        return True
+    else:
+        return False
+
+
+def check_email(value):
+    if not re.match('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$', value):
+        print(colored("email", "red"))
+        return True
+    else:
+        return False
+
+
 def prepare_password(password):
     base_form = base64.b64encode(hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"))
     return str(hashlib.sha256(base_form).hexdigest()) + "." + str(os.environ.get("PEPPER"))
@@ -203,6 +248,13 @@ def register():
             "status": "403",
             "message": "Forbidden"
         }, 403)
+        return resp
+
+    if check_email(email) or check_password(password) or check_name(name) or check_name(surname) or check_username(username):
+        resp = make_response({
+            "status": "400",
+            "message": "Wrong format"
+        }, 400)
         return resp
 
     dao.sql.execute("SELECT email FROM users WHERE email= %(email)s;", {'email': email})
@@ -356,7 +408,8 @@ def save_note():
         }, 403)
         return resp
 
-    if check_if_sqli(title) or check_if_sqli(body) or check_if_sqli(username) or check_if_sqli(password):
+    if check_if_sqli(title) or check_if_sqli(body) or check_if_sqli(username) or check_if_sqli(password) or check_xss(
+            title):
         resp = make_response({
             "status": "403",
             "message": "Forbidden"

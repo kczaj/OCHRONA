@@ -10,9 +10,6 @@ document.addEventListener("DOMContentLoaded", (e) => {
         try {
             await tokenCreate(formData, token)
             console.log("Changed password")
-            setTimeout(1000, (e) => {
-                window.location.href = "/"
-            })
         } catch (e) {
             console.log(e)
         }
