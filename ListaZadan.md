@@ -26,5 +26,5 @@
   - [X] Możliwość odzyskania dostępu w przypadku utraty hasła
   - [X] Informowanie użytkownika o nowych podłączeniach do jego konta
   - [X] Zostawienie honeypots
-  - [ ] Mechanizm Content-Security-Policy
+  - [X] Mechanizm Content-Security-Policy
   - [X] Wyłączenie nagłówka Server
