@@ -361,7 +361,7 @@ def login():
             else:
                 db.hset(name, "count", 0)
                 db.sadd(lock, "0")
-                db.expire(lock, 120)
+                db.expire(lock, 300)
             resp = make_response({
                 "status": "401",
                 "message": "Unauthorized"
