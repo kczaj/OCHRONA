@@ -15,6 +15,7 @@ from Crypto.Util.Padding import pad, unpad
 import redis
 from termcolor import colored
 import re
+from datetime import timedelta
 
 from app.dao import DAO
 
@@ -24,6 +25,7 @@ app.secret_key = os.environ.get("SECRET_KEY")
 db = redis.Redis(host="redis", port=6379)
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config['UPLOAD_FOLDER'] = {'png', 'jpg', 'pdf', 'txt'}
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
 csrf = CSRFProtect(app)
 
 dao = DAO()
@@ -250,7 +252,8 @@ def register():
         }, 403)
         return resp
 
-    if check_email(email) or check_password(password) or check_name(name) or check_name(surname) or check_username(username):
+    if check_email(email) or check_password(password) or check_name(name) or check_name(surname) or check_username(
+            username):
         resp = make_response({
             "status": "400",
             "message": "Wrong format"
@@ -294,6 +297,7 @@ def register():
 
     dao.db.commit()
     session["username"] = username
+    session.permanent = True
     resp = make_response({
         "status": "200",
         "message": "OK",
@@ -344,6 +348,7 @@ def login():
         password_form = prepare_password(password)
         if bcrypt.checkpw(password_form.encode("utf-8"), data_db[1].encode("utf-8")):
             session["username"] = username
+            session.permanent = True
             db.hset(name, "count", 0)
 
             if username == "admin":
@@ -380,6 +385,7 @@ def login():
 @cross_origin(origins=["https://localhost"])
 def logout():
     username = session.pop("username", None)
+    session.clear()
     ip = request.remote_addr
     dao.sql.execute("DELETE FROM ips WHERE ip=%(ip)s AND username = %(username)s;", {'ip': ip, 'username': username})
     dao.db.commit()
