@@ -195,7 +195,6 @@ def check_xss(value):
 
 def check_password(value):
     if len(value) < 8 or not re.match('^[a-zA-Z0-9!@#$%&*]+$', value):
-        print(colored("password", "red"))
         return True
     else:
         return False
@@ -203,7 +202,6 @@ def check_password(value):
 
 def check_name(value):
     if not re.match('^[a-zA-Z]+$', value):
-        print(colored("name", "red"))
         return True
     else:
         return False
@@ -211,7 +209,6 @@ def check_name(value):
 
 def check_username(value):
     if not re.match('^[a-zA-Z0-9]+$', value):
-        print(colored("username", "red"))
         return True
     else:
         return False
@@ -219,7 +216,6 @@ def check_username(value):
 
 def check_email(value):
     if not re.match('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$', value):
-        print(colored("email", "red"))
         return True
     else:
         return False
@@ -360,6 +356,7 @@ def login():
             if not ips:
                 dao.sql.execute("INSERT INTO ips (ip, username) VALUES ( %(ip)s, %(username)s);",
                                 {'ip': ip, 'username': username})
+                print(colored(f"New login to account {username} from address {ip}"))
 
             resp = make_response({
                 "status": "200",
