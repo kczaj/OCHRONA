@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
         } else {
             switch (res.status) {
                 case 404: throw "Not found";break;
-                case 400: throw "No email";break;
+                case 400: throw "Wrong password format";break;
                 case 403: throw "Forbidden input"; break;
                 default: throw "Unexpected error"
             }
