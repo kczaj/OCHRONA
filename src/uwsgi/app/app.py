@@ -28,6 +28,9 @@ csrf = CSRFProtect(app)
 
 dao = DAO()
 
+name = "user_1"
+db.hset(name, "count", 0)
+
 
 @app.after_request
 def after_request(resp):
