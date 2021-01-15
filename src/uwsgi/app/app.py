@@ -3,7 +3,6 @@ import uuid
 
 from flask import Flask, render_template, make_response, request, session, redirect, jsonify, url_for
 from flask_wtf.csrf import CSRFProtect
-from flask_cors import CORS, cross_origin
 import hashlib
 import bcrypt
 import os
@@ -20,7 +19,6 @@ from datetime import timedelta
 from app.dao import DAO
 
 app = Flask(__name__)
-cors = CORS(app)
 app.secret_key = os.environ.get("SECRET_KEY")
 db = redis.Redis(host="redis", port=6379)
 app.config["SESSION_COOKIE_SECURE"] = True
@@ -40,14 +38,12 @@ def after_request(resp):
 
 
 @app.route('/', methods=["GET"])
-@cross_origin(origins=["https://localhost"])
 def index():
     resp = make_response(render_template("index.html"), 200)
     return resp
 
 
 @app.route('/password/', methods=["GET", "POST"])
-@cross_origin(origins=["https://localhost"])
 def password():
     if request.method == "POST":
         email = request.form.get("email") if request.form.get("email") is not "" or request.form.get(
@@ -88,7 +84,6 @@ def password():
 
 
 @app.route('/password/<string:token>', methods=["GET", "POST"])
-@cross_origin(origins=["https://localhost"])
 def reset_password(token):
     if request.method == "GET":
         if db.exists(token) == 1:
@@ -148,7 +143,6 @@ def reset_password(token):
 
 
 @app.route('/user/', methods=["GET"])
-@cross_origin(origins=["https://localhost"])
 def after_log():
     if "username" not in session.keys():
         return redirect("/")
@@ -164,7 +158,6 @@ def after_log():
 
 
 @app.route('/note/', methods=["GET"])
-@cross_origin(origins=["https://localhost"])
 def new_file():
     if "username" not in session.keys():
         return redirect("/")
@@ -227,7 +220,6 @@ def prepare_password(password):
 
 
 @app.route('/register/', methods=["POST"])
-@cross_origin(origins=["https://localhost"])
 def register():
     username = request.form.get("username")
     email = request.form.get("email")
@@ -302,7 +294,6 @@ def register():
 
 
 @app.route("/login/", methods=["POST"])
-@cross_origin(origins=["https://localhost"])
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
@@ -379,7 +370,6 @@ def login():
 
 
 @app.route("/logout/", methods=["POST"])
-@cross_origin(origins=["https://localhost"])
 def logout():
     username = session.pop("username", None)
     session.clear()
@@ -390,7 +380,6 @@ def logout():
 
 
 @app.route("/savenote/", methods=["POST"])
-@cross_origin(origins=["https://localhost"])
 def save_note():
     title = request.form.get("title")
     body = request.form.get("body")
@@ -457,7 +446,6 @@ def save_note():
 
 
 @app.route("/decrypt/", methods=["POST"])
-@cross_origin(origins=["https://localhost"])
 def decrypt_note():
     id = request.form.get("id")
     password = request.form.get("password")
@@ -527,7 +515,6 @@ def decrypt_note():
 
 
 @app.route("/notes/", methods=["GET"])
-@cross_origin(origins=["https://localhost"])
 def get_notes():
     username = session["username"] if "username" in session.keys() else None
     if username is None:
@@ -564,7 +551,6 @@ def get_notes():
 
 
 @app.route("/public/", methods=["GET"])
-@cross_origin(origins=["https://localhost"])
 def get_public_notes():
     username = session["username"] if "username" in session.keys() else None
     if username is None:
@@ -601,7 +587,6 @@ def get_public_notes():
 
 
 @app.route("/ips/", methods=["GET"])
-@cross_origin(origins=["https://localhost"])
 def get_ips():
     username = session["username"] if "username" in session.keys() else None
     if username is None:
@@ -636,7 +621,6 @@ def get_ips():
 
 
 @app.route("/file/", methods=["GET", "POST"])
-@cross_origin(origins=["https://localhost"])
 def save_file():
     if request.method == "POST":
         file = request.files["file"] if "file" in request.files else None
