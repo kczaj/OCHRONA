@@ -115,9 +115,9 @@ document.addEventListener("DOMContentLoaded", (e) => {
             let password = passwordInput.value;
 
             try {
-                // if (calculateEntropy(password) < 4) {
-                //     throw "You need to create harder password"
-                // }
+                if (calculateEntropy(password) < 3) {
+                    throw "You need to create harder password"
+                }
                 if (validateFieldsRegister(name, surname, username, email, password)) {
                     let registerForm = document.getElementById("register-form")
                     let formData = new FormData(registerForm)

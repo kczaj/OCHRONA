@@ -365,7 +365,7 @@ def login():
             return resp
         else:
             count = int(db.hget(name, "count"))
-            if count + 1 < 15:
+            if count + 1 < 5:
                 db.hset(name, "count", count + 1)
             else:
                 db.hset(name, "count", 0)
